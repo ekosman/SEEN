@@ -75,17 +75,15 @@ class SDT(nn.Module):
             nn.Sigmoid(),
         )
 
-        self.leaf_nodes = nn.Linear(self.leaf_node_num_,
-                                    self.output_dim,
-                                    bias=False)
+        self.leaf_nodes = nn.Parameter(torch.randn(size=(self.leaf_node_num_, self.output_dim)), requires_grad=True)
 
-    def forward(self, X, is_training_data=False):
+    def forward(self, X):
         _mu, _penalty = self._forward(X)
-        y_pred = self.leaf_nodes(_mu)
+        y_pred = _mu @ self.leaf_nodes
 
         # When `X` is the training data, the model also returns the penalty
         # to compute the training loss.
-        if is_training_data:
+        if self.training:
             return y_pred, _penalty
         else:
             return y_pred
