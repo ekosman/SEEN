@@ -18,16 +18,16 @@ def onehot_coding(target, device, output_dim):
 if __name__ == "__main__":
 
     # Parameters
-    input_dim = 28 * 28    # the number of input dimensions
-    output_dim = 10        # the number of outputs (i.e., # classes on MNIST)
-    depth = 5              # tree depth
-    lamda = 1e-3           # coefficient of the regularization term
-    lr = 1e-3              # learning rate
-    weight_decaly = 5e-4   # weight decay
-    batch_size = 128       # batch size
-    epochs = 50            # the number of training epochs
-    log_interval = 100     # the number of batches to wait before printing logs
-    use_cuda = False       # whether to use GPU
+    input_dim = 28 * 28  # the number of input dimensions
+    output_dim = 10  # the number of outputs (i.e., # classes on MNIST)
+    depth = 5  # tree depth
+    lamda = 1e-3  # coefficient of the regularization term
+    lr = 1e-3  # learning rate
+    weight_decaly = 5e-4  # weight decay
+    batch_size = 128  # batch size
+    epochs = 50  # the number of training epochs
+    log_interval = 100  # the number of batches to wait before printing logs
+    use_cuda = False  # whether to use GPU
 
     # Model and Optimizer
     tree = SDT(input_dim, output_dim, depth, lamda, use_cuda)
@@ -37,26 +37,28 @@ if __name__ == "__main__":
                                  weight_decay=weight_decaly)
 
     # Load data
-    data_dir = "../Dataset/mnist"
+    data_dir = "Dataset/mnist"
 
     transformer = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
     )
 
     train_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(data_dir,
-                       train=True,
-                       download=True,
-                       transform=transformer,),
+        datasets.EMNIST(data_dir,
+                        train=True,
+                        download=True,
+                        transform=transformer,
+                        split='mnist', ),
         batch_size=batch_size,
         shuffle=True,
     )
 
     test_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(data_dir,
-                       train=False,
-                       download=True,
-                       transform=transformer,),
+        datasets.EMNIST(data_dir,
+                        train=False,
+                        download=True,
+                        transform=transformer,
+                        split='mnist', ),
         batch_size=batch_size,
         shuffle=True,
     )
@@ -104,7 +106,6 @@ if __name__ == "__main__":
         correct = 0.
 
         for batch_idx, (data, target) in enumerate(test_loader):
-
             batch_size = data.size()[0]
             data, target = data.to(device), target.to(device)
 
