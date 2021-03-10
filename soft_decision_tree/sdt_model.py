@@ -77,9 +77,9 @@ class SDT(nn.Module):
 
         self.leaf_nodes = nn.Parameter(torch.randn(size=(self.leaf_node_num_, self.output_dim)), requires_grad=True)
 
-    def forward(self, X):
+    def forward(self, X, soft_paths=True):
         _mu, _penalty = self._forward(X)
-        y_pred = _mu @ self.leaf_nodes
+        y_pred = _mu @ self.leaf_nodes if soft_paths else self.leaf_nodes[_mu.argmax(dim=1), :]
 
         # When `X` is the training data, the model also returns the penalty
         # to compute the training loss.

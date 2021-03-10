@@ -49,13 +49,13 @@ if __name__ == "__main__":
     register_logger()
     input_dim = 28 * 28  # the number of input dimensions
     output_dim = 10  # the number of outputs (i.e., # classes on MNIST)
-    depth = 5  # tree depth
+    depth = 10  # tree depth
     lamda = 1e-3  # coefficient of the regularization term
     lr = 1e-3  # learning rate
     weight_decaly = 5e-4  # weight decay
     batch_size = 256  # batch size
-    epochs = 50  # the number of training epochs
-    log_interval = 100  # the number of batches to wait before printing logs
+    epochs = 51  # the number of training epochs
+    log_interval = 10  # the number of batches to wait before printing logs
     use_cuda = torch.cuda.is_available()  # whether to use GPU
 
     # Model and Optimizer

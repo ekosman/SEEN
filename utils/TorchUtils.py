@@ -5,6 +5,8 @@ import time
 import torch
 import torch.nn as nn
 
+from losses.accuracy import Accuracy
+
 
 def get_torch_device():
     """
@@ -39,13 +41,14 @@ class TorchModel(nn.Module):
     Wrapper class for a torch model to make it comfortable to train and load models
     """
 
-    def __init__(self, model):
+    def __init__(self, model, use_accuracy=True):
         super(TorchModel, self).__init__()
         self.device = get_torch_device()
         self.iteration = 0
         self.model = model
         self.is_data_parallel = False
         self.callbacks = []
+        self.accuracy = Accuracy() if use_accuracy else None
 
     def register_callback(self, callback_fn):
         """
@@ -145,6 +148,8 @@ class TorchModel(nn.Module):
         self.eval()
         self.notify_callbacks('on_evaluation_start', len(data_iter))
         total_loss = 0
+        total_correct = 0
+        total_count = 0
 
         with torch.no_grad():
             for iteration, (batch, targets) in enumerate(data_iter):
@@ -161,7 +166,10 @@ class TorchModel(nn.Module):
                                       loss.item())
 
                 total_loss += loss.item()
+                total_correct += self.accuracy(outputs, targets).item()
+                total_count += targets.shape[0]
 
+        logging.info(f"val_acc: {total_correct / total_count}")
         loss = total_loss / len(data_iter)
         self.notify_callbacks('on_evaluation_end')
         return loss
@@ -171,6 +179,8 @@ class TorchModel(nn.Module):
         total_time = 0
         self.train()
         self.notify_callbacks('on_epoch_start', epoch, len(data_iter))
+        total_correct = 0
+        total_count = 0
         for iteration, (batch, targets) in enumerate(data_iter):
             self.iteration += 1
             start_time = time.time()
@@ -197,10 +207,13 @@ class TorchModel(nn.Module):
                                   iteration,
                                   loss.item(),
                                   )
+
+            total_correct += self.accuracy(outputs, targets).item()
+            total_count += targets.shape[0]
             self.iteration += 1
 
         loss = total_loss / len(data_iter)
-
+        logging.info(f"train_acc: {total_correct / total_count}")
         self.notify_callbacks('on_epoch_end', loss)
         return loss
 
