@@ -4,18 +4,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
 
-from losses.sdt_cross_entropy import SDTLoss
 from soft_decision_tree.sdt_model import SDT
-from six.moves import urllib
+# from six.moves import urllib
 
-from utils.TorchUtils import TorchModel
-from utils.callbacks import DefaultModelCallback
 from utils.utils import register_logger
 
-opener = urllib.request.build_opener()
-opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-urllib.request.install_opener(opener)
+# opener = urllib.request.build_opener()
+# opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+# urllib.request.install_opener(opener)
 
 
 def onehot_coding(target, device, output_dim):
@@ -60,7 +58,7 @@ if __name__ == "__main__":
 
     # Model and Optimizer
     tree = SDT(input_dim, output_dim, depth, lamda, use_cuda)
-
+    tree.visualize()
     optimizer = torch.optim.Adam(tree.parameters(),
                                  lr=lr,
                                  weight_decay=weight_decaly)
@@ -72,78 +70,94 @@ if __name__ == "__main__":
     best_testing_acc = 0.0
     testing_acc_list = []
     training_loss_list = []
-    criterion = SDTLoss()
+    criterion = nn.CrossEntropyLoss()
     device = torch.device("cuda" if use_cuda else "cpu")
+    tree = tree.to(device)
 
-    model = TorchModel(tree).to(device).train()
-    model.register_callback(DefaultModelCallback(log_every=log_interval))
+    # model = TorchModel(tree).to(device).train()
+    # model.register_callback(DefaultModelCallback(log_every=log_interval))
+    #
+    # model.fit(train_iter=train_loader,
+    #           criterion=criterion,
+    #           optimizer=optimizer,
+    #           eval_iter=test_loader,
+    #           epochs=epochs,
+    #           evaluate_every=5)
 
-    model.fit(train_iter=train_loader,
-              criterion=criterion,
-              optimizer=optimizer,
-              eval_iter=test_loader,
-              epochs=epochs,
-              evaluate_every=5)
+    for epoch in range(epochs):
+        print(f"Classes: {tree.get_classes()}")
+        # Training
+        tree.train()
+        for batch_idx, (data, target) in enumerate(train_loader):
 
-    # for epoch in range(epochs):
-    #
-    #     # Training
-    #     tree.train()
-    #     for batch_idx, (data, target) in enumerate(train_loader):
-    #
-    #         batch_size = data.size()[0]
-    #         data, target = data.to(device), target.to(device)
-    #         target_onehot = onehot_coding(target, device, output_dim)
-    #
-    #         output, penalty = tree.forward(data, is_training_data=True)
-    #
-    #         loss = criterion(output, target.view(-1))
-    #         loss += penalty
-    #
-    #         optimizer.zero_grad()
-    #         loss.backward()
-    #         optimizer.step()
-    #
-    #         # Print training status
-    #         if batch_idx % log_interval == 0:
-    #             pred = output.data.max(1)[1]
-    #             correct = pred.eq(target.view(-1).data).sum()
-    #
-    #             msg = (
-    #                 "Epoch: {:02d} | Batch: {:03d} | Loss: {:.5f} |"
-    #                 " Correct: {:03d}/{:03d}"
-    #             )
-    #             print(msg.format(epoch, batch_idx, loss, correct, batch_size))
-    #             training_loss_list.append(loss.cpu().data.numpy())
-    #
-    #     # Evaluating
-    #     tree.eval()
-    #     correct = 0.
-    #
-    #     for batch_idx, (data, target) in enumerate(test_loader):
-    #         batch_size = data.size()[0]
-    #         data, target = data.to(device), target.to(device)
-    #
-    #         output = F.softmax(tree.forward(data), dim=1)
-    #
-    #         pred = output.data.max(1)[1]
-    #         correct += pred.eq(target.view(-1).data).sum()
-    #
-    #     accuracy = 100.0 * float(correct) / len(test_loader.dataset)
-    #
-    #     if accuracy > best_testing_acc:
-    #         best_testing_acc = accuracy
-    #
-    #     msg = (
-    #         "\nEpoch: {:02d} | Testing Accuracy: {}/{} ({:.3f}%) |"
-    #         " Historical Best: {:.3f}%\n"
-    #     )
-    #     print(
-    #         msg.format(
-    #             epoch, correct,
-    #             len(test_loader.dataset),
-    #             accuracy,
-    #             best_testing_acc
-    #         )
-    #     )
-    #     testing_acc_list.append(accuracy)
+            batch_size = data.size()[0]
+            data, target = data.to(device), target.to(device)
+            target_onehot = onehot_coding(target, device, output_dim)
+
+            output, penalty = tree.forward(data)
+
+            # Loss
+            loss = criterion(output, target.view(-1))
+
+            # Penalty
+            loss += penalty
+
+            # L1
+            fc_params = torch.cat([x.view(-1) for x in tree.inner_nodes.parameters()])
+            l1_regularization = torch.norm(fc_params, 1)
+            l1_lambda = 1e-3  # 1e-3
+            loss += l1_lambda * l1_regularization
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # Print training status
+            if batch_idx % log_interval == 0:
+                pred = output.data.max(1)[1]
+                correct = pred.eq(target.view(-1).data).sum()
+
+                msg = (
+                    "Epoch: {:02d} | Batch: {:03d} / {:03d} | Loss: {:.5f} |"
+                    " Accuracy: {:03f}"
+                )
+                print(msg.format(epoch, batch_idx, len(train_loader), loss, correct / batch_size))
+                training_loss_list.append(loss.cpu().data.numpy())
+
+        # Evaluating
+        tree.eval()
+        correct = 0.
+
+        plt.figure()
+        weights = tree.inner_nodes.weight.detach().numpy().flatten()
+        plt.hist(weights, bins=500)
+        plt.yscale("log")
+        plt.show()
+
+        for batch_idx, (data, target) in enumerate(test_loader):
+            batch_size = data.size()[0]
+            data, target = data.to(device), target.to(device)
+
+            output = F.softmax(tree.forward(data), dim=1)
+
+            pred = output.data.max(1)[1]
+            correct += pred.eq(target.view(-1).data).sum()
+
+        accuracy = 100.0 * float(correct) / len(test_loader.dataset)
+
+        if accuracy > best_testing_acc:
+            best_testing_acc = accuracy
+
+        msg = (
+            "\nEpoch: {:02d} | Testing Accuracy: {}/{} ({:.3f}%) |"
+            " Historical Best: {:.3f}%\n"
+        )
+        print(
+            msg.format(
+                epoch, correct,
+                len(test_loader.dataset),
+                accuracy,
+                best_testing_acc
+            )
+        )
+        testing_acc_list.append(accuracy)

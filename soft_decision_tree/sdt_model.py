@@ -1,5 +1,17 @@
 import torch
 import torch.nn as nn
+import numpy as np
+from queue import Queue
+import networkx as nx
+import matplotlib.pyplot as plt
+
+
+class Node:
+    def __init__(self, depth):
+        self.left = None
+        self.right = None
+        self._class = None
+        self.depth = depth
 
 
 class SDT(nn.Module):
@@ -70,12 +82,75 @@ class SDT(nn.Module):
 
         # Initialize internal nodes and leaf nodes, the input dimension on
         # internal nodes is added by 1, serving as the bias.
-        self.inner_nodes = nn.Sequential(
-            nn.Linear(self.input_dim + 1, self.internal_node_num_, bias=False),
-            nn.Sigmoid(),
-        )
+        self.inner_nodes = nn.Linear(self.input_dim + 1, self.internal_node_num_, bias=False)
 
         self.leaf_nodes = nn.Parameter(torch.randn(size=(self.leaf_node_num_, self.output_dim)), requires_grad=True)
+
+    def get_classes(self):
+        return list(self.leaf_nodes.detach().argmax(dim=1).numpy())
+
+    def visualize(self):
+        root = Node(depth=0)
+        q = Queue()
+        q.put(root)
+        leaf_i = 0
+        while not q.empty():
+            node = q.get()
+            if node.depth < self.depth:
+                node.left = Node(node.depth + 1)
+                node.right = Node(node.depth + 1)
+                q.put(node.left)
+                q.put(node.right)
+            if node.depth == self.depth:
+                node._class = self.leaf_nodes[leaf_i, :].argmax().item()
+                leaf_i += 1
+
+        #     prune
+        self.prune(root)
+
+        A = nx.DiGraph()
+
+        A.add_node(0, _class=root._class)
+
+        q = Queue()
+        labels = {}
+        q.put((root, 0))
+
+        while not q.empty():
+            node, node_i = q.get()
+            labels[node_i] = node._class if node._class is not None else ''
+            if node._class is not None:
+                # leaf node
+                continue
+
+            else:
+                left_node = node_i*2+1
+                right_node = node_i*2+2
+                A.add_node(left_node, _class=node.left._class)
+                A.add_node(right_node, _class=node.right._class)
+                A.add_edge(node_i, left_node)
+                A.add_edge(node_i, right_node)
+                q.put((node.left, left_node))
+                q.put((node.right, right_node))
+
+        plt.figure(figsize=(300, 10), dpi=80)
+        pos = nx.drawing.nx_agraph.graphviz_layout(A, prog='dot')
+        nx.draw(A, pos, with_labels=True, arrows=True, labels=labels)
+        plt.show()
+
+    @staticmethod
+    def prune(node):
+        if node.left is None and node.right is None:
+            # it's a leaf
+            return
+
+        SDT.prune(node.left)
+        SDT.prune(node.right)
+
+        if node.left._class == node.right._class and node.left._class is not None:
+            node._class = node.left._class
+            node.left = None
+            node.right = None
 
     def forward(self, X, soft_paths=True):
         _mu, _penalty = self._forward(X)
@@ -94,7 +169,7 @@ class SDT(nn.Module):
         batch_size = X.size()[0]
         X = self._data_augment(X)
 
-        path_prob = self.inner_nodes(X)
+        path_prob = torch.sigmoid(self.inner_nodes(X))
         path_prob = torch.unsqueeze(path_prob, dim=2)
         path_prob = torch.cat((path_prob, 1 - path_prob), dim=2)
 
