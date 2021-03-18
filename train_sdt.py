@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from soft_decision_tree.sdt_model import SDT
 # from six.moves import urllib
@@ -139,7 +140,7 @@ if __name__ == "__main__":
         plt.yscale("log")
         plt.show()
 
-        for batch_idx, (data, target) in enumerate(test_loader):
+        for batch_idx, (data, target) in tqdm(enumerate(test_loader)):
             batch_size = data.size()[0]
             data, target = data.to(device), target.to(device)
 
