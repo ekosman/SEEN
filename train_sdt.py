@@ -135,7 +135,7 @@ if __name__ == "__main__":
         correct = 0.
 
         plt.figure()
-        weights = tree.inner_nodes.weight.detach().numpy().flatten()
+        weights = tree.inner_nodes.weight.cpu().detach().numpy().flatten()
         plt.hist(weights, bins=500)
         plt.yscale("log")
         plt.show()
