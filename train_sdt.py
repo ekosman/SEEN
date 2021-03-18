@@ -121,7 +121,7 @@ if __name__ == "__main__":
                     "Epoch: {:02d} | Batch: {:03d} / {:03d} | Loss: {:.5f} |"
                     " Accuracy: {:03f}"
                 )
-                print(msg.format(epoch, batch_idx, len(train_loader), loss, correct / batch_size))
+                print(msg.format(epoch, batch_idx, len(train_loader), loss.item(), correct.item() / batch_size))
                 training_loss_list.append(loss.cpu().data.numpy())
 
         plt.figure(figsize=(300, 10), dpi=80)
@@ -146,7 +146,7 @@ if __name__ == "__main__":
             output = F.softmax(tree.forward(data), dim=1)
 
             pred = output.data.max(1)[1]
-            correct += pred.eq(target.view(-1).data).sum()
+            correct += pred.eq(target.view(-1).data).sum().item()
 
         accuracy = 100.0 * float(correct) / len(test_loader.dataset)
 
