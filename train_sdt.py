@@ -139,6 +139,7 @@ if __name__ == "__main__":
         plt.hist(weights, bins=500)
         plt.yscale("log")
         plt.show()
+        plt.close()
 
         for batch_idx, (data, target) in tqdm(enumerate(test_loader)):
             batch_size = data.size()[0]
