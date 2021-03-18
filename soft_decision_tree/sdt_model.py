@@ -87,7 +87,7 @@ class SDT(nn.Module):
         self.leaf_nodes = nn.Parameter(torch.randn(size=(self.leaf_node_num_, self.output_dim)), requires_grad=True)
 
     def get_classes(self):
-        return list(self.leaf_nodes.detach().argmax(dim=1).numpy())
+        return list(self.leaf_nodes.cpu().detach().argmax(dim=1).numpy())
 
     def get_tree(self):
         root = Node(depth=0)
