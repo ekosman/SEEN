@@ -89,7 +89,7 @@ class SDT(nn.Module):
     def get_classes(self):
         return list(self.leaf_nodes.detach().argmax(dim=1).numpy())
 
-    def visualize(self):
+    def get_tree(self):
         root = Node(depth=0)
         q = Queue()
         q.put(root)
@@ -105,8 +105,33 @@ class SDT(nn.Module):
                 node._class = self.leaf_nodes[leaf_i, :].argmax().item()
                 leaf_i += 1
 
+        return root
+
+    @staticmethod
+    def get_avg_height(node):
+        q = Queue()
+        q.put(node)
+
+        sum_heights = 0
+        leaves = 0
+
+        while not q.empty():
+            node = q.get()
+            if node.left is None and node.right is None:
+                leaves += 1
+                sum_heights += node.depth
+            else:
+                q.put(node.left)
+                q.put(node.right)
+
+        return sum_heights / leaves
+
+    def visualize(self):
+        root = self.get_tree()
+
         #     prune
         self.prune(root)
+        avg_height = self.get_avg_height(root)
 
         A = nx.DiGraph()
 
@@ -133,10 +158,11 @@ class SDT(nn.Module):
                 q.put((node.left, left_node))
                 q.put((node.right, right_node))
 
-        plt.figure(figsize=(300, 10), dpi=80)
+        print(f"Average height: {avg_height}")
+        plt.title(f"Average height: {avg_height}")
         pos = nx.drawing.nx_agraph.graphviz_layout(A, prog='dot')
         nx.draw(A, pos, with_labels=True, arrows=True, labels=labels)
-        plt.show()
+        return avg_height
 
     @staticmethod
     def prune(node):

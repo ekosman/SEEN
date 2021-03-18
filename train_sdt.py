@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # Model and Optimizer
     tree = SDT(input_dim, output_dim, depth, lamda, use_cuda)
-    tree.visualize()
+
     optimizer = torch.optim.Adam(tree.parameters(),
                                  lr=lr,
                                  weight_decay=weight_decaly)
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     #           eval_iter=test_loader,
     #           epochs=epochs,
     #           evaluate_every=5)
-
+    heights = []
     for epoch in range(epochs):
         print(f"Classes: {tree.get_classes()}")
         # Training
@@ -124,6 +124,11 @@ if __name__ == "__main__":
                 print(msg.format(epoch, batch_idx, len(train_loader), loss, correct / batch_size))
                 training_loss_list.append(loss.cpu().data.numpy())
 
+        plt.figure(figsize=(300, 10), dpi=80)
+        avg_height = tree.visualize()
+        heights.append(avg_height)
+        plt.savefig(f"tree_epoch_{epoch}_avg_height_{avg_height}.png")
+        plt.close()
         # Evaluating
         tree.eval()
         correct = 0.
@@ -161,3 +166,10 @@ if __name__ == "__main__":
             )
         )
         testing_acc_list.append(accuracy)
+
+    plt.figure()
+    plt.plot(heights)
+    plt.xlabel("Epoch")
+    plt.ylabel("Average height")
+    plt.savefig("heights.png")
+    plt.close()
