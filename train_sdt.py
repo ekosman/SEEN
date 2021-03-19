@@ -1,4 +1,5 @@
 """Training and evaluating a soft decision tree on the MNIST dataset."""
+import argparse
 
 import torch
 import torch.nn as nn
@@ -15,6 +16,20 @@ from utils.utils import register_logger
 # opener = urllib.request.build_opener()
 # opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 # urllib.request.install_opener(opener)
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--depth', type=int, default=51)
+    parser.add_argument('--epochs', type=int, default=6)
+    parser.add_argument('--log_interval', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--entropy_lamda', type=float, default=1e-3)
+    parser.add_argument('--sparsity_lamda', type=float, default=1e-3)
+    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--weight_decay', type=float, default=5e-4)
+
+    return parser.parse_args()
 
 
 def onehot_coding(target, device, output_dim):
@@ -45,16 +60,17 @@ def get_data(batch_size):
 
 if __name__ == "__main__":
     # Parameters
+    args = get_args()
     register_logger()
     input_dim = 28 * 28  # the number of input dimensions
     output_dim = 10  # the number of outputs (i.e., # classes on MNIST)
-    depth = 10  # tree depth
-    lamda = 1e-3  # coefficient of the regularization term
-    lr = 1e-3  # learning rate
-    weight_decaly = 5e-4  # weight decay
-    batch_size = 256  # batch size
-    epochs = 51  # the number of training epochs
-    log_interval = 10  # the number of batches to wait before printing logs
+    depth = args.depth  # tree depth
+    lamda = args.entropy_lamda  # coefficient of the regularization term
+    lr = args.lr  # learning rate
+    weight_decay = args.weight_decay  # weight decay
+    batch_size = args.batch_size  # batch size
+    epochs = args.epochs  # the number of training epochs
+    log_interval = args.log_interval  # the number of batches to wait before printing logs
     use_cuda = torch.cuda.is_available()  # whether to use GPU
 
     # Model and Optimizer
@@ -62,7 +78,7 @@ if __name__ == "__main__":
 
     optimizer = torch.optim.Adam(tree.parameters(),
                                  lr=lr,
-                                 weight_decay=weight_decaly)
+                                 weight_decay=weight_decay)
 
     # Load data
     train_loader, test_loader = get_data(batch_size)
@@ -106,8 +122,7 @@ if __name__ == "__main__":
             # L1
             fc_params = torch.cat([x.view(-1) for x in tree.inner_nodes.parameters()])
             l1_regularization = torch.norm(fc_params, 1)
-            l1_lambda = 1e-3  # 1e-3
-            loss += l1_lambda * l1_regularization
+            loss += args.sparsity_lamda * l1_regularization
 
             optimizer.zero_grad()
             loss.backward()
@@ -125,11 +140,11 @@ if __name__ == "__main__":
                 print(msg.format(epoch, batch_idx, len(train_loader), loss.item(), correct.item() / batch_size))
                 training_loss_list.append(loss.cpu().data.numpy())
 
-        plt.figure(figsize=(300, 10), dpi=80)
+        # plt.figure(figsize=(300, 10), dpi=80)
         avg_height = tree.visualize()
         heights.append(avg_height)
-        plt.savefig(f"tree_epoch_{epoch}_avg_height_{avg_height}.png")
-        plt.close()
+        # plt.savefig(f"tree_epoch_{epoch}_avg_height_{avg_height}.png")
+        # plt.close()
         # Evaluating
         tree.eval()
         correct = 0.
