@@ -20,8 +20,8 @@ from utils.utils import register_logger
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--depth', type=int, default=51)
-    parser.add_argument('--epochs', type=int, default=6)
+    parser.add_argument('--depth', type=int, default=6)
+    parser.add_argument('--epochs', type=int, default=51)
     parser.add_argument('--log_interval', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--entropy_lamda', type=float, default=1e-3)
