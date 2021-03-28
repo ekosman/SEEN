@@ -179,7 +179,7 @@ if __name__ == '__main__':
     reduce_dims_and_plot(projects,
                          y=None,
                          title=None,
-                         file_name=None,
+                         file_name='tsne.png',
                          perplexity=50,
                          library='Multicore-TSNE',
                          perform_PCA=False,
