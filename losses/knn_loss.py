@@ -24,7 +24,7 @@ class KNNLoss(nn.Module):
 
             loss -= torch.log(distances[x_neighbors_indices] / denominator).sum()
 
-        return loss
+        return loss / x.shape[0]
 
 
 class ContrastiveLoss(torch.nn.Module):
