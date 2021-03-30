@@ -103,7 +103,7 @@ def get_args():
 def get_dataset(args, data_path, window_length):
     if args.dataset == 'comma':
         dataset = CommaLoader(signals_dataset_path=data_path,
-                              samples_interval=0.05,
+                              samples_interval=0.01,
                               signals_input=['steering_angle', 'speed'],
                               window_length=window_length)
     else:

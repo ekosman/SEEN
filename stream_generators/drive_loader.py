@@ -218,7 +218,6 @@ show_errors = {self.show_errors}
         """
         Retrieves the length of the dataset.
         """
-        print(f"len is {self.lengths[-1]}  {self.lengths[-2]}  {self.lengths[-3]}")
         return self.lengths[-1] if len(self.lengths) != 0 else 0
 
     def __getitem__(self, index):
