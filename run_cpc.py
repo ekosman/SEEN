@@ -85,6 +85,7 @@ def get_args():
     parser.add_argument('--epochs', type=int, default=60, metavar='N', help='number of epochs to train')
     parser.add_argument('--n-warmup-steps', type=int, default=50)
     parser.add_argument('--batch-size', type=int, default=64, help='batch size')
+    parser.add_argument('--device', type=int, default=7, help='which gpu to use')
     parser.add_argument('--audio-window', type=int, default=20480, help='window length to sample from each utterance')
     parser.add_argument('--timestep', type=int, default=12)
     parser.add_argument('--masked-frames', type=int, default=20)
@@ -103,10 +104,10 @@ def main():
     print('use_cuda is', use_cuda)
     global_timer = timer()  # global timer
     # logger = setup_logs(args.logging_dir, run_name)  # setup logs
-    device = torch.device("cuda" if use_cuda else "cpu")
+    device = torch.device("cuda:" + str(args.device) if use_cuda else "cpu")
     model = CDCK2(args.timestep, args.batch_size, args.window_length).to(device)
     ## Loading the dataset
-    params = {'num_workers': 0,
+    params = {'num_workers': 4,
               'pin_memory': False} if use_cuda else {}
 
     print('===> loading train, validation and eval dataset')
