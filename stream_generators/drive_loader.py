@@ -202,7 +202,7 @@ show_errors = {self.show_errors}
         :return tuple (video paths, video names)
         """
         assert os.path.exists(self.signals_dataset_path), "VideoIter:: failed to locate: `{}'".format(
-            self.video_dataset_path)
+            self.signals_dataset_path)
         return None, None
 
     def split_idx(self):
