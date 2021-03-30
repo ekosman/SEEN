@@ -9,6 +9,7 @@ import time
 import os
 import logging
 from timeit import default_timer as timer
+from tqdm import tqdm
 
 ## Libraries
 import numpy as np
@@ -28,6 +29,7 @@ from src.validation_v1 import validation, validationXXreverse
 
 ############ Control Center and Hyperparameter ###############
 from stream_generators.comma_loader import CommaLoader
+from utils.MatplotlibUtils import reduce_dims_and_plot
 
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
 print(run_name)
@@ -84,7 +86,7 @@ def get_args():
     #                     help='model save directory')
     parser.add_argument('--epochs', type=int, default=60, metavar='N', help='number of epochs to train')
     parser.add_argument('--n-warmup-steps', type=int, default=50)
-    parser.add_argument('--batch-size', type=int, default=64, help='batch size')
+    parser.add_argument('--batch-size', type=int, default=256, help='batch size')
     parser.add_argument('--device', type=int, default=7, help='which gpu to use')
     parser.add_argument('--audio-window', type=int, default=20480, help='window length to sample from each utterance')
     parser.add_argument('--timestep', type=int, default=12)
@@ -93,9 +95,21 @@ def get_args():
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
     parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before logging training status')
-    parser.add_argument('--window_length', type=int, default=1000,
+    parser.add_argument('--window_length', type=int, default=4000,
                         help='window length to sample from each video')
     return parser.parse_args()
+
+
+def get_dataset(args, data_path, window_length):
+    if args.dataset == 'comma':
+        dataset = CommaLoader(signals_dataset_path=data_path,
+                              samples_interval=0.05,
+                              signals_input=['steering_angle', 'speed'],
+                              window_length=window_length)
+    else:
+        raise NotImplementedError(f"Dataset {args.dataset} not implemented")
+
+    return dataset
 
 
 def main():
@@ -111,13 +125,7 @@ def main():
               'pin_memory': False} if use_cuda else {}
 
     print('===> loading train, validation and eval dataset')
-    if args.dataset == 'comma':
-        training_set = CommaLoader(signals_dataset_path=args.data_path,
-                                   samples_interval=0.01,
-                                   signals_input=['steering_angle', 'speed'],
-                                   window_length=args.window_length)
-    else:
-        raise NotImplementedError(f"Dataset {args.dataset} not implemented")
+    training_set = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
 
     train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
                                    **params)  # set shuffle to True
@@ -167,6 +175,31 @@ def main():
     end_global_timer = timer()
     print("################## Success #########################")
     print("Total elapsed time: %s" % (end_global_timer - global_timer))
+
+    # Do some TSNE
+    dataset = get_dataset(args=args, data_path=args.data_path, window_length=160)
+    loader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
+                                   **params)  # set shuffle to True
+
+    projects = torch.tensor([])
+    with torch.no_grad():
+        bar = tqdm(total=10000)
+        for batch in loader:
+            y = model.encode(batch)
+            projects = torch.cat([projects, y])
+
+    reduce_dims_and_plot(projects,
+                         y=None,
+                         title=None,
+                         file_name='cpc_tsne.png',
+                         perplexity=50,
+                         library='Multicore-TSNE',
+                         perform_PCA=False,
+                         projected=None,
+                         figure_type='2d',
+                         show_figure=True,
+                         close_figure=False,
+                         text=None)
 
 
 if __name__ == '__main__':

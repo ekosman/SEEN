@@ -19,12 +19,12 @@ class CDCK2(nn.Module):
             nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
-            # nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
-            # nn.BatchNorm1d(512),
-            # nn.ReLU(inplace=True),
-            # nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
-            # nn.BatchNorm1d(512),
-            # nn.ReLU(inplace=True)
+            nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True)
         )
         self.gru = nn.GRU(512, 256, num_layers=1, bidirectional=False, batch_first=True)
         self.Wk = nn.ModuleList([nn.Linear(256, 512) for i in range(timestep)])
@@ -48,12 +48,15 @@ class CDCK2(nn.Module):
 
         self.apply(_weights_init)
 
+    def encode(self, x):
+        return self.encoder(x)
+
     def init_hidden(self, batch_size):
         return torch.zeros(1, batch_size, 256)
 
     def forward(self, x, hidden):
         batch = x.size()[0]
-        t_samples = torch.randint(int(self.seq_len / 40 - self.timestep), size=(1,)).long()  # randomly pick time stamps
+        t_samples = torch.randint(int(self.seq_len / 1600 - self.timestep), size=(1,)).long()  # randomly pick time stamps
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
         # encoded sequence is N*C*L, e.g. 8*512*128
