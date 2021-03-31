@@ -119,7 +119,7 @@ def main():
     global_timer = timer()  # global timer
     # logger = setup_logs(args.logging_dir, run_name)  # setup logs
     device = torch.device("cuda:" + str(args.device) if use_cuda else "cpu")
-    model = CDCK2(args.timestep, args.batch_size, args.window_length).to(device)
+
     ## Loading the dataset
     params = {'num_workers': 4,
               'pin_memory': False} if use_cuda else {}
@@ -129,6 +129,8 @@ def main():
 
     train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
                                    **params)  # set shuffle to True
+
+    model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=training_set.n_features).to(device)
     # nanxin optimizer
     optimizer = ScheduledOptim(
         optim.Adam(
@@ -198,7 +200,7 @@ def main():
     reduce_dims_and_plot(projects,
                          y=None,
                          title=None,
-                         file_name='cpc_tsne.png',
+                         file_name='all_cpc_tsne.png',
                          perplexity=50,
                          library='Multicore-TSNE',
                          perform_PCA=False,

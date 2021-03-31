@@ -4,13 +4,13 @@ import numpy as np
 
 
 class CDCK2(nn.Module):
-    def __init__(self, timestep, batch_size, seq_len):
+    def __init__(self, timestep, batch_size, seq_len, in_features):
         super(CDCK2, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.timestep = timestep
         self.encoder = nn.Sequential(  # downsampling factor = 160
-            nn.Conv1d(2, 512, kernel_size=10, stride=5, padding=3, bias=False),
+            nn.Conv1d(in_features, 512, kernel_size=10, stride=5, padding=3, bias=False),
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
             nn.Conv1d(512, 512, kernel_size=8, stride=4, padding=2, bias=False),

@@ -66,6 +66,10 @@ class ClipLoader(data.Dataset):
 
         self.valid_idx = set(range(len(self)))
 
+    @property
+    def n_features(self):
+        return len(self.all_signals) if self.signals_input == 'all' else len(self.signals_input)
+
     def set_flip_prob(self, flip_prob):
         self.flip_prob = flip_prob
 
