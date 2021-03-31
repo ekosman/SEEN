@@ -34,6 +34,7 @@ class CommaLoader(ClipLoader):
         can_signals = ['speed', 'steering_angle', 'wheel_speed']
         imu_signals = ['accelerometer', 'gyro', 'gyro_bias', 'gyro_uncalibrated']
         all_signals = can_signals + imu_signals
+        signals = []
 
         for video_name in tqdm(self.video_names):
             signals = []
@@ -73,6 +74,8 @@ class CommaLoader(ClipLoader):
 
             df['time'] -= start_time
             data[video_name] = df
+
+        self.all_signals = signals
 
         return data
 

@@ -46,6 +46,7 @@ class ClipLoader(data.Dataset):
         self.signals_dataset_path = signals_dataset_path
 
         # input signals
+        self.all_signals = []
         self.signals_input = signals_input
         self.window_length = window_length
         self.history_stride = history_stride
@@ -276,7 +277,7 @@ show_errors = {self.show_errors}
         video_idx = np.searchsorted(self.lengths, idx)
         video_name = self.idx_2_video[video_idx]
         data_df = self.unnormalized_sensor_data[video_name]
-        data_df = data_df[self.signals_input]
+        data_df = data_df[self.all_signals] if self.signals_input == 'all' else data_df[self.signals_input]
         if video_idx >= 1:
             idx -= self.lengths[video_idx - 1]
 

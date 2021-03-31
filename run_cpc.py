@@ -104,7 +104,7 @@ def get_dataset(args, data_path, window_length):
     if args.dataset == 'comma':
         dataset = CommaLoader(signals_dataset_path=data_path,
                               samples_interval=0.01,
-                              signals_input=['steering_angle', 'speed'],
+                              signals_input='all',
                               window_length=window_length)
     else:
         raise NotImplementedError(f"Dataset {args.dataset} not implemented")
