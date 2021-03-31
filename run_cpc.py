@@ -75,7 +75,7 @@ class ScheduledOptim(object):
 def get_args():
     ## Settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-    parser.add_argument('--data_path', type=str, default=r'C:\comma\comma2k19\all_data')
+    parser.add_argument('--data_path', type=str, default=r'C:\comma\comma2k19\comma_ai_all_data')
     parser.add_argument('--dataset', type=str, choices=['comma', 'udacity'], default='comma')
     # parser.add_argument('--validation-raw', required=True)
     # parser.add_argument('--eval-raw')
@@ -125,10 +125,10 @@ def main():
               'pin_memory': False} if use_cuda else {}
 
     print('===> loading train, validation and eval dataset')
-    training_set = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
+    # training_set = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
 
-    train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
-                                   **params)  # set shuffle to True
+    # train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
+    #                                **params)  # set shuffle to True
     # nanxin optimizer
     optimizer = ScheduledOptim(
         optim.Adam(
@@ -144,6 +144,7 @@ def main():
     best_loss = np.inf
     best_epoch = -1
     for epoch in range(1, args.epochs + 1):
+        break
         epoch_timer = timer()
 
         # Train and validate

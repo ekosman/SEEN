@@ -49,7 +49,7 @@ class CDCK2(nn.Module):
         self.apply(_weights_init)
 
     def encode(self, x):
-        return self.encoder(x)
+        return self.encoder(x).view(x.shape[0], -1)
 
     def init_hidden(self, batch_size):
         return torch.zeros(1, batch_size, 256)
