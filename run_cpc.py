@@ -182,11 +182,18 @@ def main():
                                    **params)  # set shuffle to True
 
     projects = torch.tensor([])
+    total = 10000
+    count = 0
     with torch.no_grad():
-        bar = tqdm(total=10000)
+        bar = tqdm(total=total)
         for batch in loader:
-            y = model.encode(batch)
+            if count >= total:
+                break
+
+            y = model.encode(batch.to(device)).detach().cpu()
             projects = torch.cat([projects, y])
+            bar.update(y.shape[0])
+            count += y.shape[0]
 
     reduce_dims_and_plot(projects,
                          y=None,
