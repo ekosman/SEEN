@@ -125,10 +125,10 @@ def main():
               'pin_memory': False} if use_cuda else {}
 
     print('===> loading train, validation and eval dataset')
-    # training_set = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
+    training_set = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
 
-    # train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
-    #                                **params)  # set shuffle to True
+    train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
+                                   **params)  # set shuffle to True
     # nanxin optimizer
     optimizer = ScheduledOptim(
         optim.Adam(
@@ -144,7 +144,6 @@ def main():
     best_loss = np.inf
     best_epoch = -1
     for epoch in range(1, args.epochs + 1):
-        break
         epoch_timer = timer()
 
         # Train and validate
