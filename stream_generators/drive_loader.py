@@ -294,7 +294,7 @@ show_errors = {self.show_errors}
         end = idx + self.window_length * self.history_stride
         if end >= len(data_df):
             raise IndexError("Out of bounds of dataframe")
-        data_df = data_df[self.signals_input].values[idx:  idx + self.window_length * self.history_stride, :]
+        data_df = data_df.values[idx:  idx + self.window_length * self.history_stride, :]
         # steps = list(range(idx, idx + self.num_chunks * self.samples_per_chunk + 1, self.samples_per_chunk))
         # chunks = [data_df[i_start: i_end, :] for i_start, i_end in zip(steps[:-1], steps[1:])]
         # return torch.tensor(np.array(chunks)).transpose(1, 2)
