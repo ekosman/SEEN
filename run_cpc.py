@@ -85,6 +85,7 @@ def get_args():
     # parser.add_argument('--logging-dir', required=True,
     #                     help='model save directory')
     parser.add_argument('--epochs', type=int, default=60, metavar='N', help='number of epochs to train')
+    parser.add_argument('--num_workers', type=int, default=2, help='number of workers for the loader')
     parser.add_argument('--n-warmup-steps', type=int, default=50)
     parser.add_argument('--batch-size', type=int, default=256, help='batch size')
     parser.add_argument('--device', type=int, default=7, help='which gpu to use')
@@ -121,8 +122,8 @@ def main():
     device = torch.device("cuda:" + str(args.device) if use_cuda else "cpu")
 
     ## Loading the dataset
-    params = {'num_workers': 2,
-              'pin_memory': False} if use_cuda else {}
+    params = {'num_workers': args.num_workers,
+              'pin_memory': True} if use_cuda else {}
 
     print('===> loading train, validation and eval dataset')
     training_set = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
