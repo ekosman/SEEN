@@ -4,6 +4,8 @@ import os
 import torch.nn.functional as F
 
 ## Get the same logger from main"
+from network.cpc import CDCK2
+
 logger = logging.getLogger("cdc")
 
 
@@ -62,7 +64,7 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
         else:
             data = data.to(device)
         optimizer.zero_grad()
-        hidden = model.init_hidden(len(data)).to(device)
+        hidden = CDCK2.init_hidden(len(data)).to(device)
         acc, loss, hidden = model(data, hidden)
 
         loss.backward()

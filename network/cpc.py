@@ -51,7 +51,8 @@ class CDCK2(nn.Module):
     def encode(self, x):
         return self.encoder(x).view(x.shape[0], -1)
 
-    def init_hidden(self, batch_size):
+    @staticmethod
+    def init_hidden(batch_size):
         return torch.zeros(1, batch_size, 256)
 
     def forward(self, x, hidden):
