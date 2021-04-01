@@ -85,6 +85,7 @@ def get_args():
     # parser.add_argument('--logging-dir', required=True,
     #                     help='model save directory')
     parser.add_argument('--epochs', type=int, default=60, metavar='N', help='number of epochs to train')
+    parser.add_argument('--features', nargs="+", default='all', help='names of featurse to use for cpc')
     parser.add_argument('--num_workers', type=int, default=2, help='number of workers for the loader')
     parser.add_argument('--n-warmup-steps', type=int, default=50)
     parser.add_argument('--batch_size', type=int, default=256, help='batch size')
@@ -102,10 +103,13 @@ def get_args():
 
 
 def get_dataset(args, data_path, window_length):
+    if args.features[0] == 'all':
+        args.features = 'all'
+
     if args.dataset == 'comma':
         dataset = CommaLoader(signals_dataset_path=data_path,
                               samples_interval=0.01,
-                              signals_input='all',
+                              signals_input=args.features,
                               window_length=window_length)
     else:
         raise NotImplementedError(f"Dataset {args.dataset} not implemented")
