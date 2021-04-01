@@ -137,11 +137,12 @@ def main():
 
     model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=training_set.n_features)
     is_data_parallel = False
-    if use_cuda:
-        model = nn.DataParallel(model).cuda()
-        is_data_parallel = True
-    else:
-        model = model.to(device)
+    # if use_cuda:
+    #     model = nn.DataParallel(model).cuda()
+    #     is_data_parallel = True
+    # else:
+    #     model = model.to(device)
+    model = model.to(device)
 
     # nanxin optimizer
     optimizer = ScheduledOptim(
