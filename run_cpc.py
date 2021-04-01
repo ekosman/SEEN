@@ -121,7 +121,7 @@ def main():
     device = torch.device("cuda:" + str(args.device) if use_cuda else "cpu")
 
     ## Loading the dataset
-    params = {'num_workers': 4,
+    params = {'num_workers': 2,
               'pin_memory': False} if use_cuda else {}
 
     print('===> loading train, validation and eval dataset')
