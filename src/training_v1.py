@@ -54,10 +54,13 @@ def train_spk(args, cdc_model, spk_model, device, train_loader, optimizer, epoch
                        100. * batch_idx / len(train_loader), lr, acc, loss.item()))
 
 
-def train(args, model, device, train_loader, optimizer, epoch, batch_size):
+def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_data_parallel):
     model.train()
     for batch_idx, data in enumerate(train_loader):
-        data = data.to(device)  # add channel dimension
+        if is_data_parallel:
+            data = data.cuda()
+        else:
+            data = data.to(device)
         optimizer.zero_grad()
         hidden = model.init_hidden(len(data)).to(device)
         acc, loss, hidden = model(data, hidden)

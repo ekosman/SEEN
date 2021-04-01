@@ -136,8 +136,10 @@ def main():
                                    **params)  # set shuffle to True
 
     model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=training_set.n_features)
+    is_data_parallel = False
     if use_cuda:
         model = nn.DataParallel(model).cuda()
+        is_data_parallel = True
     else:
         model = model.to(device)
 
@@ -161,7 +163,7 @@ def main():
         # Train and validate
         # trainXXreverse(args, model, device, train_loader, optimizer, epoch, args.batch_size)
         # val_acc, val_loss = validationXXreverse(args, model, device, validation_loader, args.batch_size)
-        train(args, model, device, train_loader, optimizer, epoch, args.batch_size)
+        train(args, model, device, train_loader, optimizer, epoch, args.batch_size, is_data_parallel)
         # val_acc, val_loss = validation(args, model, device, validation_loader, args.batch_size)
 
         # Save
@@ -202,7 +204,12 @@ def main():
             if count >= total:
                 break
 
-            y = model.encode(batch.to(device)).detach().cpu()
+            if is_data_parallel:
+                data = data.cuda()
+            else:
+                data = data.to(device)
+
+            y = model.encode(batch).detach().cpu()
             projects = torch.cat([projects, y])
             bar.update(y.shape[0])
             count += y.shape[0]
