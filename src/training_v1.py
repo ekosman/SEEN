@@ -59,12 +59,16 @@ def train_spk(args, cdc_model, spk_model, device, train_loader, optimizer, epoch
 def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_data_parallel):
     model.train()
     for batch_idx, data in enumerate(train_loader):
+        hidden = CDCK2.init_hidden(len(data))
         if is_data_parallel:
             data = data.cuda()
+            hidden = hidden.cuda()
         else:
             data = data.to(device)
+            hidden = hidden.to(device)
+
         optimizer.zero_grad()
-        hidden = CDCK2.init_hidden(len(data)).to(device)
+
         acc, loss, hidden = model(data, hidden)
 
         loss.backward()
