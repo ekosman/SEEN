@@ -87,14 +87,14 @@ def get_args():
     parser.add_argument('--epochs', type=int, default=60, metavar='N', help='number of epochs to train')
     parser.add_argument('--num_workers', type=int, default=2, help='number of workers for the loader')
     parser.add_argument('--n-warmup-steps', type=int, default=50)
-    parser.add_argument('--batch-size', type=int, default=256, help='batch size')
+    parser.add_argument('--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('--device', type=int, default=7, help='which gpu to use')
-    parser.add_argument('--audio-window', type=int, default=20480, help='window length to sample from each utterance')
+    parser.add_argument('--audio_window', type=int, default=20480, help='window length to sample from each utterance')
     parser.add_argument('--timestep', type=int, default=12)
-    parser.add_argument('--masked-frames', type=int, default=20)
-    parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
+    parser.add_argument('--masked_frames', type=int, default=20)
+    parser.add_argument('--no_cuda', action='store_true', default=False, help='disables CUDA training')
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
-    parser.add_argument('--log-interval', type=int, default=10, metavar='N',
+    parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before logging training status')
     parser.add_argument('--window_length', type=int, default=4000,
                         help='window length to sample from each video')
