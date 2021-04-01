@@ -57,21 +57,21 @@ class CDCK2(nn.Module):
 
     def forward(self, x, hidden):
         batch = x.size()[0]
-        print(f"1: {x.shape[0]}")
+        # print(f"1: {x.shape[0]}")
         t_samples = torch.randint(int(self.seq_len / 160 - self.timestep), size=(1,)).long()  # randomly pick time stamps
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
-        print(f"2: {z.shape[0]}")
+        # print(f"2: {z.shape[0]}")
         # encoded sequence is N*C*L, e.g. 8*512*128
         # reshape to N*L*C for GRU, e.g. 8*128*512
         z = z.transpose(1, 2)
-        print(f"3: {z.shape[0]}")
+        # print(f"3: {z.shape[0]}")
         nce = 0  # average over timestep and batch
         encode_samples = torch.empty((self.timestep, batch, 512)).float()  # e.g. size 12*8*512
         for i in np.arange(1, self.timestep + 1):
             encode_samples[i - 1] = z[:, t_samples + i, :].view(batch, 512)  # z_tk e.g. size 8*512
         forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
-        print(f"4: {forward_seq.shape[0]}")
+        # print(f"4: {forward_seq.shape[0]}")
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
         c_t = output[:, t_samples, :].view(batch, 256)  # c_t e.g. size 8*256
         pred = torch.empty((self.timestep, batch, 512)).float()  # e.g. size 12*8*512
