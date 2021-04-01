@@ -132,6 +132,7 @@ def main():
                                    **params)  # set shuffle to True
 
     model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=training_set.n_features).to(device)
+    model = nn.DataParallel(model).to(device=device)
     # nanxin optimizer
     optimizer = ScheduledOptim(
         optim.Adam(
