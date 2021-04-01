@@ -59,6 +59,7 @@ def train_spk(args, cdc_model, spk_model, device, train_loader, optimizer, epoch
 def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_data_parallel):
     model.train()
     for batch_idx, data in enumerate(train_loader):
+        print(f"Len is {len(data)}")
         hidden = CDCK2.init_hidden(len(data))
         if is_data_parallel:
             data = data.cuda()
