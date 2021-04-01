@@ -135,8 +135,12 @@ def main():
     train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
                                    **params)  # set shuffle to True
 
-    model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=training_set.n_features).to(device)
-    model = nn.DataParallel(model).to(device=device)
+    model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=training_set.n_features)
+    if use_cuda:
+        model = nn.DataParallel(model).cuda()
+    else:
+        model = model.to(device)
+
     # nanxin optimizer
     optimizer = ScheduledOptim(
         optim.Adam(
