@@ -205,9 +205,9 @@ def main():
                 break
 
             if is_data_parallel:
-                data = data.cuda()
+                batch = batch.cuda()
             else:
-                data = data.to(device)
+                batch = batch.to(device)
 
             y = model.encode(batch).detach().cpu()
             projects = torch.cat([projects, y])
