@@ -18,6 +18,7 @@ class ClipLoader(data.Dataset):
                  signals_input=[],
                  window_length=10,
                  history_stride=1,
+                 window_stride=1,
                  show_errors=False,
                  print_description=True,
                  flip_prob=0.5,
@@ -50,6 +51,7 @@ class ClipLoader(data.Dataset):
         self.signals_input = signals_input
         self.window_length = window_length
         self.history_stride = history_stride
+        self.window_stride = window_stride
 
         # prepare data
         self.ignore_sensors_for_normalization = ignore_sensors_for_normalization
@@ -214,7 +216,7 @@ show_errors = {self.show_errors}
         lengths = []
         for k, data_df in self.sensors_data.items():
             length = len(data_df)
-            num_samples = length - self.window_length + 1  # amount of chunks series in one file
+            num_samples = (length - self.window_length * self.history_stride) // self.window_stride + 1  # amount of chunks series in one file
             lengths.append(num_samples)
 
         return np.cumsum(lengths)
@@ -294,7 +296,9 @@ show_errors = {self.show_errors}
         end = idx + self.window_length * self.history_stride
         if end >= len(data_df):
             raise IndexError("Out of bounds of dataframe")
-        data_df = data_df.values[idx:  idx + self.window_length * self.history_stride, :]
+        idx *= self.window_stride
+        idx = list(range(idx, idx + self.window_length * self.history_stride, self.history_stride))
+        data_df = data_df.values[idx, :]
         # steps = list(range(idx, idx + self.num_chunks * self.samples_per_chunk + 1, self.samples_per_chunk))
         # chunks = [data_df[i_start: i_end, :] for i_start, i_end in zip(steps[:-1], steps[1:])]
         # return torch.tensor(np.array(chunks)).transpose(1, 2)
@@ -330,7 +334,6 @@ show_errors = {self.show_errors}
                 steering_name = None
 
             if random.random() < self.flip_prob and steering_name is not None:
-                data_df = data_df.copy()
                 data_df[steering_name] *= -1
 
         data_df = self.apply_normalization(data_df, self.sensor_means, self.sensor_stds)

@@ -36,6 +36,7 @@ class CommaLoader(ClipLoader):
         all_signals = can_signals + imu_signals
         signals = []
 
+        i = 1
         for video_name in tqdm(self.video_names):
             signals = []
             interpolators = dict()
@@ -75,7 +76,10 @@ class CommaLoader(ClipLoader):
             df['time'] -= start_time
             data[video_name] = df
 
-            # break
+            # if i == 3:
+            #     break
+
+            i += 1
 
         self.all_signals = signals
 
