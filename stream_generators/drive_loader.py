@@ -17,7 +17,7 @@ class ClipLoader(data.Dataset):
                  signals_dataset_path,
                  signals_input=[],
                  window_length=10,
-                 history_stride=1,
+                 sample_stride=1,
                  window_stride=1,
                  show_errors=False,
                  print_description=True,
@@ -50,7 +50,7 @@ class ClipLoader(data.Dataset):
         self.all_signals = []
         self.signals_input = signals_input
         self.window_length = window_length
-        self.history_stride = history_stride
+        self.sample_stride = sample_stride
         self.window_stride = window_stride
 
         # prepare data
@@ -216,7 +216,7 @@ show_errors = {self.show_errors}
         lengths = []
         for k, data_df in self.sensors_data.items():
             length = len(data_df)
-            num_samples = (length - self.window_length * self.history_stride) // self.window_stride + 1  # amount of chunks series in one file
+            num_samples = (length - self.window_length * self.sample_stride) // self.window_stride + 1  # amount of chunks series in one file
             lengths.append(num_samples)
 
         return np.cumsum(lengths)
@@ -293,11 +293,11 @@ show_errors = {self.show_errors}
         return data_df.copy(), idx
 
     def to_chunks(self, data_df, idx):
-        end = idx + self.window_length * self.history_stride
+        end = idx + self.window_length * self.sample_stride
         if end >= len(data_df):
             raise IndexError("Out of bounds of dataframe")
         idx *= self.window_stride
-        idx = list(range(idx, idx + self.window_length * self.history_stride, self.history_stride))
+        idx = list(range(idx, idx + self.window_length * self.sample_stride, self.sample_stride))
         data_df = data_df.values[idx, :]
         # steps = list(range(idx, idx + self.num_chunks * self.samples_per_chunk + 1, self.samples_per_chunk))
         # chunks = [data_df[i_start: i_end, :] for i_start, i_end in zip(steps[:-1], steps[1:])]

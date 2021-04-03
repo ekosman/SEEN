@@ -97,8 +97,9 @@ def get_args():
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
     parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before logging training status')
-    parser.add_argument('--window_length', type=int, default=4000, help='window length to sample from each video')
-    parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive samples')
+    parser.add_argument('--window_length', type=int, default=1500, help='window length to sample from each video')
+    parser.add_argument('--sample_stride', type=int, default=1, help='interval between two consecutive samples')
+    parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive windows')
     return parser.parse_args()
 
 
@@ -111,7 +112,8 @@ def get_dataset(args, data_path, window_length):
                               samples_interval=0.01,
                               signals_input=args.features,
                               window_length=window_length,
-                              window_stride=args.window_stride)
+                              window_stride=args.window_stride,
+                              sample_stride=args.sample_stride)
     else:
         raise NotImplementedError(f"Dataset {args.dataset} not implemented")
 
