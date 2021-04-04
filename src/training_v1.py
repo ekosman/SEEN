@@ -58,6 +58,7 @@ def train_spk(args, cdc_model, spk_model, device, train_loader, optimizer, epoch
 
 def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_data_parallel):
     model.train()
+    total_loss = 0
     for batch_idx, data in enumerate(train_loader):
         hidden = CDCK2.init_hidden(len(data))
         if is_data_parallel:
@@ -78,6 +79,10 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                        100. * batch_idx / len(train_loader), lr, acc, loss.item()))
+
+        total_loss += loss.item()
+
+    return total_loss / len(train_loader)
 
 
 def snapshot(dir_path, run_name, state):

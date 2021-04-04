@@ -10,6 +10,7 @@ import os
 import logging
 from timeit import default_timer as timer
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 ## Libraries
 import numpy as np
@@ -162,13 +163,15 @@ def main():
     best_acc = 0
     best_loss = np.inf
     best_epoch = -1
+    losses = []
     for epoch in range(1, args.epochs + 1):
         epoch_timer = timer()
 
         # Train and validate
         # trainXXreverse(args, model, device, train_loader, optimizer, epoch, args.batch_size)
         # val_acc, val_loss = validationXXreverse(args, model, device, validation_loader, args.batch_size)
-        train(args, model, device, train_loader, optimizer, epoch, args.batch_size, is_data_parallel)
+        loss = train(args, model, device, train_loader, optimizer, epoch, args.batch_size, is_data_parallel)
+        losses.append(loss)
         # val_acc, val_loss = validation(args, model, device, validation_loader, args.batch_size)
 
         # Save
@@ -190,6 +193,11 @@ def main():
         end_epoch_timer = timer()
         print("#### End epoch {}/{}, elapsed time: {}".format(epoch, args.epochs, end_epoch_timer - epoch_timer))
 
+    plt.figure()
+    plt.title("Loss vs epoch")
+    plt.plot(range(len(losses)), losses)
+    plt.savefig("cpc_losses.png")
+    plt.close()
     ## end
     end_global_timer = timer()
     print("################## Success #########################")
