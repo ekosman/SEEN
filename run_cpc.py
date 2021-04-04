@@ -229,21 +229,22 @@ def main():
             bar.update(y.shape[0])
             count += y.shape[0]
 
-    for total in [5000, 10000, 20000, 40000, 70000]:
-        projects_tmp = np.random.choice(projects.shape[0], total)
-        projects_tmp = projects[projects_tmp, :]
-        reduce_dims_and_plot(projects_tmp,
-                             y=None,
-                             title=None,
-                             file_name=f'all_cpc_tsne_{str(total)}_samples.png',
-                             perplexity=50,
-                             library='Multicore-TSNE',
-                             perform_PCA=False,
-                             projected=None,
-                             figure_type='2d',
-                             show_figure=True,
-                             close_figure=False,
-                             text=None)
+    for perplexity in [10,30,50,100,200]:
+        for total in [5000, 10000, 20000, 40000, 70000]:
+            projects_tmp = np.random.choice(projects.shape[0], total)
+            projects_tmp = projects[projects_tmp, :]
+            reduce_dims_and_plot(projects_tmp,
+                                 y=None,
+                                 title=None,
+                                 file_name=f'all_cpc_tsne_perplexity_{perplexity}_{str(total)}_samples.png',
+                                 perplexity=perplexity,
+                                 library='Multicore-TSNE',
+                                 perform_PCA=False,
+                                 projected=None,
+                                 figure_type='2d',
+                                 show_figure=True,
+                                 close_figure=False,
+                                 text=None)
 
 
 if __name__ == '__main__':
