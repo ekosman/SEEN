@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+hidden_dim = 64
 
 class CDCK2(nn.Module):
     def __init__(self, timestep, batch_size, seq_len, in_features):
@@ -26,8 +27,9 @@ class CDCK2(nn.Module):
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True)
         )
-        self.gru = nn.GRU(512, 256, num_layers=1, bidirectional=False, batch_first=True)
-        self.Wk = nn.ModuleList([nn.Linear(256, 512) for i in range(timestep)])
+
+        self.gru = nn.GRU(512, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
+        self.Wk = nn.ModuleList([nn.Linear(hidden_dim, 512) for i in range(timestep)])
         self.softmax = nn.Softmax()
         self.lsoftmax = nn.LogSoftmax()
 
@@ -53,7 +55,7 @@ class CDCK2(nn.Module):
 
     @staticmethod
     def init_hidden(batch_size):
-        return torch.zeros(1, batch_size, 256)
+        return torch.zeros(1, batch_size, hidden_dim)
 
     def forward(self, x, hidden):
         batch = x.size()[0]
@@ -73,7 +75,7 @@ class CDCK2(nn.Module):
         forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
         # print(f"4: {forward_seq.shape[0]}")
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
-        c_t = output[:, t_samples, :].view(batch, 256)  # c_t e.g. size 8*256
+        c_t = output[:, t_samples, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
         pred = torch.empty((self.timestep, batch, 512)).float()  # e.g. size 12*8*512
         for i in np.arange(0, self.timestep):
             linear = self.Wk[i]
