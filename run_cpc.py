@@ -227,18 +227,19 @@ def main():
             bar.update(y.shape[0])
             count += y.shape[0]
 
-    reduce_dims_and_plot(projects,
-                         y=None,
-                         title=None,
-                         file_name=f'all_cpc_tsne_{str(args.num_tsne_samples)}_samples.png',
-                         perplexity=50,
-                         library='Multicore-TSNE',
-                         perform_PCA=False,
-                         projected=None,
-                         figure_type='2d',
-                         show_figure=True,
-                         close_figure=False,
-                         text=None)
+    for total in [5000, 10000, 20000, 40000, 80000]:
+        reduce_dims_and_plot(projects,
+                             y=None,
+                             title=None,
+                             file_name=f'all_cpc_tsne_{str(total)}_samples.png',
+                             perplexity=50,
+                             library='Multicore-TSNE',
+                             perform_PCA=False,
+                             projected=None,
+                             figure_type='2d',
+                             show_figure=True,
+                             close_figure=False,
+                             text=None)
 
 
 if __name__ == '__main__':
