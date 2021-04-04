@@ -211,6 +211,8 @@ def main():
     projects = torch.tensor([])
     total = args.num_tsne_samples
     count = 0
+    totals = [5000, 10000, 20000, 40000, 80000]
+    total = max(totals)
     with torch.no_grad():
         bar = tqdm(total=total)
         for batch in loader:
@@ -228,7 +230,9 @@ def main():
             count += y.shape[0]
 
     for total in [5000, 10000, 20000, 40000, 80000]:
-        reduce_dims_and_plot(projects,
+        projects_tmp = np.random.choice(projects.shape[0], total)
+        projects_tmp = projects[projects_tmp, :]
+        reduce_dims_and_plot(projects_tmp,
                              y=None,
                              title=None,
                              file_name=f'all_cpc_tsne_{str(total)}_samples.png',
