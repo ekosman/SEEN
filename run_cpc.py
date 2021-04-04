@@ -100,6 +100,7 @@ def get_args():
     parser.add_argument('--window_length', type=int, default=1500, help='window length to sample from each video')
     parser.add_argument('--sample_stride', type=int, default=1, help='interval between two consecutive samples')
     parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive windows')
+    parser.add_argument('--num_tsne_samples', type=int, default=25000, help='how many samples to use for TSNE')
     return parser.parse_args()
 
 
@@ -200,7 +201,7 @@ def main():
                                    **params)  # set shuffle to True
 
     projects = torch.tensor([])
-    total = 10000
+    total = args.num_tsne_samples
     count = 0
     with torch.no_grad():
         bar = tqdm(total=total)
