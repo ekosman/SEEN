@@ -230,7 +230,7 @@ def main():
     reduce_dims_and_plot(projects,
                          y=None,
                          title=None,
-                         file_name='all_cpc_tsne.png',
+                         file_name=f'all_cpc_tsne_{str(args.num_tsne_samples)}_samples.png',
                          perplexity=50,
                          library='Multicore-TSNE',
                          perform_PCA=False,
