@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-hidden_dim = 64
+hidden_dim = 32
 
 
 class ConvBlock(nn.Module):
