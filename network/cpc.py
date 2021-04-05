@@ -26,7 +26,7 @@ class CDCK2(nn.Module):
 
         strides = [5, 2, 2, 2, 2, 2]
         paddings = [3, 2, 1, 1, 1, 1]
-        kernel_sizes = [10, 8, 4, 4, 4, 3]
+        kernel_sizes = [10, 8, 4, 4, 4, 4]
         conv_steps = [in_features, 8, 16, 32, 64, 128, 256]
         self.embedding_dim = conv_steps[-1]
         self.encoder = nn.Sequential(*[ConvBlock(in_, out_, stride, padding, kernel_size) for in_, out_, stride, padding, kernel_size in
