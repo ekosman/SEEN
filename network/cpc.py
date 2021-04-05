@@ -6,10 +6,10 @@ hidden_dim = 64
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, in_features, out_features):
+    def __init__(self, in_features, out_features, stride, padding, kernel_size):
         super(ConvBlock, self).__init__()
         self.encoder = nn.Sequential(  # downsampling factor = 160
-            nn.Conv1d(in_features, out_features, kernel_size=10, stride=5, padding=3, bias=False),
+            nn.Conv1d(in_features, out_features, kernel_size=kernel_size, stride=stride, padding=padding, bias=False),
             nn.BatchNorm1d(out_features),
             nn.ReLU(inplace=True))
 
@@ -24,9 +24,13 @@ class CDCK2(nn.Module):
         self.seq_len = seq_len
         self.timestep = timestep
 
+        strides = [5, 4, 2, 2, 2]
+        paddings = [3, 2, 1, 1, 1]
+        kernel_sizes = [10, 8, 4, 4, 4]
         conv_steps = [in_features, 16, 32, 64, 128, 256]
         self.embedding_dim = conv_steps[-1]
-        self.encoder = nn.Sequential(*[ConvBlock(in_, out_) for in_, out_ in zip(conv_steps[:-1], conv_steps[1:])])
+        self.encoder = nn.Sequential(*[ConvBlock(in_, out_, stride, padding, kernel_size) for in_, out_, stride, padding, kernel_size in
+                                       zip(conv_steps[:-1], conv_steps[1:], strides, paddings, kernel_sizes)])
 
         self.gru = nn.GRU(self.embedding_dim, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
         self.Wk = nn.ModuleList([nn.Linear(hidden_dim, self.embedding_dim) for i in range(timestep)])
@@ -60,7 +64,8 @@ class CDCK2(nn.Module):
     def forward(self, x, hidden):
         batch = x.size()[0]
         # print(f"1: {x.shape[0]}")
-        t_samples = torch.randint(int(self.seq_len / 160 - self.timestep), size=(1,)).long()  # randomly pick time stamps
+        t_samples = torch.randint(int(self.seq_len / 160 - self.timestep),
+                                  size=(1,)).long()  # randomly pick time stamps
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
         # print(f"2: {z.shape[0]}")
@@ -76,7 +81,7 @@ class CDCK2(nn.Module):
         # print(f"4: {forward_seq.shape[0]}")
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
         c_t = output[:, t_samples, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
-        pred = torch.empty((self.timestep, batch, 512)).float()  # e.g. size 12*8*512
+        pred = torch.empty((self.timestep, batch, self.embedding_dim)).float()  # e.g. size 12*8*512
         for i in np.arange(0, self.timestep):
             linear = self.Wk[i]
             pred[i] = linear(c_t)  # Wk*c_t e.g. size 8*512
