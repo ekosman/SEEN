@@ -206,7 +206,7 @@ def main():
     # Do some TSNE
     dataset = get_dataset(args=args, data_path=args.data_path, window_length=160)
     loader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
-                                   **params)  # set shuffle to True
+                             **params)  # set shuffle to True
 
     projects = torch.tensor([])
     total = args.num_tsne_samples
@@ -229,7 +229,7 @@ def main():
             bar.update(y.shape[0])
             count += y.shape[0]
 
-    for perplexity in [10,30,50,100,200]:
+    for perplexity in [10, 30, 50, 100, 200]:
         for total in [5000, 10000, 20000, 40000, 70000]:
             projects_tmp = np.random.choice(projects.shape[0], total)
             projects_tmp = projects[projects_tmp, :]

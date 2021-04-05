@@ -4,32 +4,32 @@ import numpy as np
 
 hidden_dim = 64
 
+
+class ConvBlock(nn.Module):
+    def __init__(self, in_features, out_features):
+        super(ConvBlock, self).__init__()
+        self.encoder = nn.Sequential(  # downsampling factor = 160
+            nn.Conv1d(in_features, out_features, kernel_size=10, stride=5, padding=3, bias=False),
+            nn.BatchNorm1d(out_features),
+            nn.ReLU(inplace=True))
+
+    def forward(self, x):
+        return self.encoder(x)
+
+
 class CDCK2(nn.Module):
     def __init__(self, timestep, batch_size, seq_len, in_features):
         super(CDCK2, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.timestep = timestep
-        self.encoder = nn.Sequential(  # downsampling factor = 160
-            nn.Conv1d(in_features, 512, kernel_size=10, stride=5, padding=3, bias=False),
-            nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv1d(512, 512, kernel_size=8, stride=4, padding=2, bias=False),
-            nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv1d(512, 512, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True)
-        )
 
-        self.gru = nn.GRU(512, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
-        self.Wk = nn.ModuleList([nn.Linear(hidden_dim, 512) for i in range(timestep)])
+        conv_steps = [in_features, 16, 32, 64, 128, 256]
+        self.embedding_dim = conv_steps[-1]
+        self.encoder = nn.Sequential(*[ConvBlock(in_, out_) for in_, out_ in zip(conv_steps[:-1], conv_steps[1:])])
+
+        self.gru = nn.GRU(self.embedding_dim, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
+        self.Wk = nn.ModuleList([nn.Linear(hidden_dim, self.embedding_dim) for i in range(timestep)])
         self.softmax = nn.Softmax()
         self.lsoftmax = nn.LogSoftmax()
 
@@ -69,9 +69,9 @@ class CDCK2(nn.Module):
         z = z.transpose(1, 2)
         # print(f"3: {z.shape[0]}")
         nce = 0  # average over timestep and batch
-        encode_samples = torch.empty((self.timestep, batch, 512)).float()  # e.g. size 12*8*512
+        encode_samples = torch.empty((self.timestep, batch, self.embedding_dim)).float()  # e.g. size 12*8*512
         for i in np.arange(1, self.timestep + 1):
-            encode_samples[i - 1] = z[:, t_samples + i, :].view(batch, 512)  # z_tk e.g. size 8*512
+            encode_samples[i - 1] = z[:, t_samples + i, :].view(batch, self.embedding_dim)  # z_tk e.g. size 8*512
         forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
         # print(f"4: {forward_seq.shape[0]}")
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
