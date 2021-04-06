@@ -42,6 +42,7 @@ class ClipLoader(data.Dataset):
         self.flip_prob = flip_prob
         self.samples_interval = samples_interval
         self.split_type = split_type
+        self.print_description = print_description
 
         # signals io
         self.signals_dataset_path = signals_dataset_path
@@ -60,13 +61,21 @@ class ClipLoader(data.Dataset):
         self.idx_2_video = [k for k, v in self.sensors_data.items()]
         self.sensors_data, self.unnormalized_sensor_data, self.sensor_means, self.sensor_stds, self.sensor_maxs = self.normalize_data(
             self.sensors_data)
-        self.lengths = self.split_idx()
-        # self.filter_missing_files()
 
-        if print_description:
+        self.lengths = None
+        self.valid_idx = None
+
+        self.set_window_length(self.window_length)
+
+    def set_window_length(self, value):
+        self.window_length = value
+        self.lengths = self.split_idx()
+
+        if self.print_description:
             print(repr(self))
 
         self.valid_idx = set(range(len(self)))
+
 
     @property
     def n_features(self):

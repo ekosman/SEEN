@@ -23,7 +23,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 ## Custrom Imports
-from network.cpc import CDCK2
+from network.cpc import CDCK2, compress_ratio
 from src.logger_v1 import setup_logs
 from src.training_v1 import train, trainXXreverse, snapshot
 from src.validation_v1 import validation, validationXXreverse
@@ -204,14 +204,16 @@ def main():
     print("Total elapsed time: %s" % (end_global_timer - global_timer))
 
     # Do some TSNE
-    dataset = get_dataset(args=args, data_path=args.data_path, window_length=250)
+    dataset = training_set
+    dataset.set_window_length(compress_ratio)
+    # dataset = get_dataset(args=args, data_path=args.data_path, window_length=compress_ratio)
     loader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
                              **params)  # set shuffle to True
 
     projects = torch.tensor([])
     total = args.num_tsne_samples
     count = 0
-    totals = [5000, 10000, 20000, 40000, 80000]
+    totals = [len(dataset) // 32, len(dataset) // 16, len(dataset) // 8, len(dataset) // 4, len(dataset) // 2, len(dataset)]
     total = max(totals)
     with torch.no_grad():
         bar = tqdm(total=total)
@@ -230,7 +232,7 @@ def main():
             count += y.shape[0]
 
     for perplexity in [10, 30, 50, 100, 200, 400, 500, 800, 1000, 2000, 5000, 10000]:
-        for total in [5000, 10000, 20000, 40000, 70000]:
+        for total in totals:
             projects_tmp = np.random.choice(projects.shape[0], total)
             projects_tmp = projects[projects_tmp, :]
             reduce_dims_and_plot(projects_tmp,

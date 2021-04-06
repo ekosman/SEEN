@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 hidden_dim = 32
-
+compress_ratio = 250
 
 class ConvBlock(nn.Module):
     def __init__(self, in_features, out_features, stride, padding, kernel_size):
@@ -64,7 +64,7 @@ class CDCK2(nn.Module):
     def forward(self, x, hidden):
         batch = x.size()[0]
         # print(f"1: {x.shape[0]}")
-        t_samples = torch.randint(int(self.seq_len / 250 - self.timestep),
+        t_samples = torch.randint(int(self.seq_len / compress_ratio - self.timestep),
                                   size=(1,)).long()  # randomly pick time stamps
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
