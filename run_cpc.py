@@ -249,7 +249,7 @@ def main():
                                  projected=None,
                                  figure_type='2d',
                                  show_figure=True,
-                                 close_figure=False,
+                                 close_figure=True,
                                  text=None)
 
 
