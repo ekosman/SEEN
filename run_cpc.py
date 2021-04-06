@@ -99,6 +99,7 @@ def get_args():
     parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before logging training status')
     parser.add_argument('--window_length', type=int, default=1500, help='window length to sample from each video')
+    parser.add_argument('--tsne_window_length', type=int, default=1000, help='window length to sample from each video')
     parser.add_argument('--sample_stride', type=int, default=1, help='interval between two consecutive samples')
     parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive windows')
     parser.add_argument('--num_tsne_samples', type=int, default=25000, help='how many samples to use for TSNE')
@@ -205,7 +206,7 @@ def main():
 
     # Do some TSNE
     dataset = training_set
-    dataset.set_window_length(compress_ratio)
+    dataset.set_window_length(args.tsne_window_length)
     # dataset = get_dataset(args=args, data_path=args.data_path, window_length=compress_ratio)
     loader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
                              **params)  # set shuffle to True
@@ -221,12 +222,15 @@ def main():
             if count >= total:
                 break
 
+            hidden = CDCK2.init_hidden(len(batch))
             if is_data_parallel:
                 batch = batch.cuda()
+                hidden = hidden.cuda()
             else:
                 batch = batch.to(device)
+                hidden = hidden.to(device)
 
-            y = model.encode(batch).detach().cpu()
+            y = model.predict(batch, hidden).detach().cpu()
             projects = torch.cat([projects, y])
             bar.update(y.shape[0])
             count += y.shape[0]

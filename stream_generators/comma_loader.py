@@ -76,8 +76,8 @@ class CommaLoader(ClipLoader):
             df['time'] -= start_time
             data[video_name] = df
 
-            # if i == 3:
-            #     break
+            if i == 5:
+                break
 
             i += 1
 

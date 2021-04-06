@@ -5,16 +5,20 @@ import numpy as np
 hidden_dim = 32
 compress_ratio = 250
 
+
 class ConvBlock(nn.Module):
     def __init__(self, in_features, out_features, stride, padding, kernel_size):
         super(ConvBlock, self).__init__()
-        self.encoder = nn.Sequential(  # downsampling factor = 160
-            nn.Conv1d(in_features, out_features, kernel_size=kernel_size, stride=stride, padding=padding, bias=False),
-            nn.BatchNorm1d(out_features),
-            nn.ReLU(inplace=True))
+        self.conv = nn.Conv1d(in_features, out_features, kernel_size=kernel_size, stride=stride, padding=padding,
+                              bias=False)
+        self.norm = nn.BatchNorm1d(out_features)
+        self.act = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        return self.encoder(x)
+        x = self.conv(x)
+        x = self.norm(x)
+        x = self.act(x)
+        return x
 
 
 class CDCK2(nn.Module):
@@ -29,8 +33,9 @@ class CDCK2(nn.Module):
         kernel_sizes = [3, 3, 3, 3, 3, 3, 3, 3]
         conv_steps = [in_features, 18, 16, 32, 64, 128, 128, 256, 256]
         self.embedding_dim = conv_steps[-1]
-        self.encoder = nn.Sequential(*[ConvBlock(in_, out_, stride, padding, kernel_size) for in_, out_, stride, padding, kernel_size in
-                                       zip(conv_steps[:-1], conv_steps[1:], strides, paddings, kernel_sizes)])
+        self.encoder = nn.Sequential(
+            *[ConvBlock(in_, out_, stride, padding, kernel_size) for in_, out_, stride, padding, kernel_size in
+              zip(conv_steps[:-1], conv_steps[1:], strides, paddings, kernel_sizes)])
 
         self.gru = nn.GRU(self.embedding_dim, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
         self.Wk = nn.ModuleList([nn.Linear(hidden_dim, self.embedding_dim) for i in range(timestep)])
@@ -68,7 +73,7 @@ class CDCK2(nn.Module):
                                   size=(1,)).long()  # randomly pick time stamps
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
-        print(f"Ratio: {x.shape[2] / z.shape[2]}")
+        # print(f"Ratio: {x.shape[2] / z.shape[2]}")
         # print(f"2: {z.shape[0]}")
         # encoded sequence is N*C*L, e.g. 8*512*128
         # reshape to N*L*C for GRU, e.g. 8*128*512
@@ -105,5 +110,5 @@ class CDCK2(nn.Module):
         z = z.transpose(1, 2)
         output, hidden = self.gru(z, hidden)  # output size e.g. 8*128*256
 
-        return output, hidden  # return every frame
-        # return output[:,-1,:], hidden # only return the last frame per utt
+        # return output, hidden  # return every frame
+        return output[:, -1, :]  # , hidden # only return the last frame per utt
