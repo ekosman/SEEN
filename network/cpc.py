@@ -24,10 +24,10 @@ class CDCK2(nn.Module):
         self.seq_len = seq_len
         self.timestep = timestep
 
-        strides = [5, 2, 2, 2, 2, 2]
-        paddings = [3, 2, 1, 1, 1, 1]
-        kernel_sizes = [10, 8, 4, 4, 4, 4]
-        conv_steps = [in_features, 8, 16, 32, 64, 128, 256]
+        strides = [2, 2, 2, 2, 2, 2, 2, 2]
+        paddings = [1, 1, 1, 1, 1, 1, 1, 1]
+        kernel_sizes = [3, 3, 3, 3, 3, 3, 3, 3]
+        conv_steps = [in_features, 18, 16, 32, 64, 128, 128, 256, 256]
         self.embedding_dim = conv_steps[-1]
         self.encoder = nn.Sequential(*[ConvBlock(in_, out_, stride, padding, kernel_size) for in_, out_, stride, padding, kernel_size in
                                        zip(conv_steps[:-1], conv_steps[1:], strides, paddings, kernel_sizes)])
@@ -64,10 +64,11 @@ class CDCK2(nn.Module):
     def forward(self, x, hidden):
         batch = x.size()[0]
         # print(f"1: {x.shape[0]}")
-        t_samples = torch.randint(int(self.seq_len / 160 - self.timestep),
+        t_samples = torch.randint(int(self.seq_len / 250 - self.timestep),
                                   size=(1,)).long()  # randomly pick time stamps
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
+        print(f"Ratio: {x.shape[2] / z.shape[2]}")
         # print(f"2: {z.shape[0]}")
         # encoded sequence is N*C*L, e.g. 8*512*128
         # reshape to N*L*C for GRU, e.g. 8*128*512

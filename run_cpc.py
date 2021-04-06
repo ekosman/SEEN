@@ -204,7 +204,7 @@ def main():
     print("Total elapsed time: %s" % (end_global_timer - global_timer))
 
     # Do some TSNE
-    dataset = get_dataset(args=args, data_path=args.data_path, window_length=160)
+    dataset = get_dataset(args=args, data_path=args.data_path, window_length=250)
     loader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
                              **params)  # set shuffle to True
 
