@@ -76,8 +76,8 @@ class CommaLoader(ClipLoader):
             df['time'] -= start_time
             data[video_name] = df
 
-            # if i == 5:
-            #     break
+            if i == 5:
+                break
 
             i += 1
 
@@ -88,7 +88,7 @@ class CommaLoader(ClipLoader):
 
 if __name__ == '__main__':
     data = CommaLoader(signals_dataset_path=r'C:\comma\comma2k19\all_data',
-                       samples_interval=0.01, signals_input=['steering_angle', 'speed'])
+                       samples_interval=0.005, signals_input=['steering_angle', 'speed'])
     data[1000]
     loader = torch.utils.data.DataLoader(data,
                                          batch_size=5,

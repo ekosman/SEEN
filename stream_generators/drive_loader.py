@@ -76,6 +76,18 @@ class ClipLoader(data.Dataset):
 
         self.valid_idx = set(range(len(self)))
 
+    def set_params(self, window_length, window_stride, sample_stride):
+        self.window_length = window_length
+        self.window_stride = window_stride
+        self.sample_stride = sample_stride
+
+        self.lengths = self.split_idx()
+
+        if self.print_description:
+            print(repr(self))
+
+        self.valid_idx = set(range(len(self)))
+
 
     @property
     def n_features(self):
