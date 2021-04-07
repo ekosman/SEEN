@@ -235,7 +235,7 @@ def main():
             bar.update(y.shape[0])
             count += y.shape[0]
 
-    for perplexity in [10, 30, 50, 100, 200, 400, 500, 800, 1000, 2000, 5000, 10000]:
+    for perplexity in [10, 30, 50, 100, 200]:
         for total in totals:
             projects_tmp = np.random.choice(projects.shape[0], total)
             projects_tmp = projects[projects_tmp, :]

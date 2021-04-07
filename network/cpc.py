@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-hidden_dim = 32
+hidden_dim = 8
 compress_ratio = 250
 
 
