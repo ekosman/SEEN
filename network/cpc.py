@@ -87,10 +87,10 @@ class CDCK2(nn.Module):
         forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
         # print(f"4: {forward_seq.shape[0]}")
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
-        print(f"output.device: {output.device}")
+        # print(f"output.device: {output.device}")
         c_t = output[:, -1, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
         pred = torch.empty((self.timestep, batch, self.embedding_dim)).float().to(self.device)  # e.g. size 12*8*512
-        print(f"pred.device: {pred.device}")
+        # print(f"pred.device: {pred.device}")
         correct = 0
         for i in np.arange(0, self.timestep):
             linear = self.Wk[i]
@@ -101,7 +101,7 @@ class CDCK2(nn.Module):
             nce += torch.sum(torch.diag(self.lsoftmax(total)))  # nce is a tensor
         nce /= -1. * batch * self.timestep
         accuracy = 1. * correct.item() / (batch * self.timestep)
-        print(f"nce.device: {nce.device}")
+        # print(f"nce.device: {nce.device}")
         return accuracy, nce, hidden, output[:, -1, :]
 
     def predict(self, x, hidden):
