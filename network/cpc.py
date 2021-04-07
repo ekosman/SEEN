@@ -86,8 +86,10 @@ class CDCK2(nn.Module):
         forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
         # print(f"4: {forward_seq.shape[0]}")
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
+        print(f"output.device: {output.device}")
         c_t = output[:, -1, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
         pred = torch.empty((self.timestep, batch, self.embedding_dim)).float()  # e.g. size 12*8*512
+        print(f"pred.device: {pred.device}")
         correct = 0
         for i in np.arange(0, self.timestep):
             linear = self.Wk[i]
