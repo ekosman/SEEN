@@ -99,7 +99,7 @@ class CDCK2(nn.Module):
         nce /= -1. * batch * self.timestep
         accuracy = 1. * correct.item() / (batch * self.timestep)
 
-        return accuracy, nce, hidden
+        return accuracy, nce, hidden, output[:, -1, :]
 
     def predict(self, x, hidden):
         batch = x.size()[0]

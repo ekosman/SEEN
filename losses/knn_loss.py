@@ -11,18 +11,23 @@ class KNNLoss(nn.Module):
         self.leaf_size = leaf_size
 
     def forward(self, x):
-        x = x / x.norm(p=2, dim=1).reshape(-1, 1)
+        # x = x / x.norm(p=2, dim=1).reshape(-1, 1)
         k = min(self.k + 1, x.shape[0])
         tree = BallTree(x.detach().numpy(), leaf_size=self.leaf_size)
         i = tree.query(x.detach().numpy(), return_distance=False, k=k)
         i = i[:, 1:]
         loss = 0
-        for x_, x_neighbors_indices in zip(x, i):
-            distances = torch.exp(x_.T @ x.T)
+        for x_i, (x_, x_neighbors_indices) in enumerate(zip(x, i)):
+            diff = x_ - x
+            diff = diff.norm(p=2, dim=1)
+            distances = torch.exp(-diff)
 
-            denominator = distances.sum()
+            neighbors_distances = distances[x_neighbors_indices]
+            distances_wo_x = distances[np.arange(len(x)) != x_i]
 
-            loss -= torch.log(distances[x_neighbors_indices] / denominator).sum()
+            denominator = distances_wo_x.sum()
+
+            loss -= torch.log(neighbors_distances / denominator).mean()
 
         return loss / x.shape[0]
 

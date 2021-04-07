@@ -4,6 +4,7 @@ import os
 import torch.nn.functional as F
 
 ## Get the same logger from main"
+from losses.knn_loss import KNNLoss
 from network.cpc import CDCK2
 
 logger = logging.getLogger("cdc")
@@ -56,9 +57,17 @@ def train_spk(args, cdc_model, spk_model, device, train_loader, optimizer, epoch
                        100. * batch_idx / len(train_loader), lr, acc, loss.item()))
 
 
+knn_loss = None
+
+
 def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_data_parallel):
+    global knn_loss
+    if knn_loss is None:
+        knn_loss = KNNLoss(k=batch_size // 4)
+
     model.train()
     total_loss = 0
+
     for batch_idx, data in enumerate(train_loader):
         hidden = CDCK2.init_hidden(len(data))
         if is_data_parallel:
@@ -70,12 +79,17 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
 
         optimizer.zero_grad()
 
-        acc, loss, hidden = model(data, hidden)
+        acc, loss, hidden, output = model(data, hidden)
 
+        loss_1 = knn_loss(output)
+
+        loss += loss_1
         loss.backward()
         optimizer.step()
         lr = optimizer.update_learning_rate()
         if batch_idx % args.log_interval == 0:
+            print(f"cpc loss: {loss.item()}")
+            print(f"knn loss: {loss_1.item()}")
             print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}'.format(
                 epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset),
                                     100. * (batch_idx + 1) / len(train_loader), lr, acc, loss.item()))
