@@ -25,6 +25,7 @@ from src.training_v1 import train
 ############ Control Center and Hyperparameter ###############
 from stream_generators.comma_loader import CommaLoader
 from utils.MatplotlibUtils import reduce_dims_and_plot
+from utils.utils import register_exps_dir
 
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
 print(run_name)
@@ -98,6 +99,7 @@ def get_args():
     parser.add_argument('--sample_stride', type=int, default=1, help='interval between two consecutive samples')
     parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive windows')
     parser.add_argument('--num_tsne_samples', type=int, default=25000, help='how many samples to use for TSNE')
+    parser.add_argument('--task_name', type=str, default="exps", help='name to use for the output folder')
     return parser.parse_args()
 
 
@@ -131,6 +133,9 @@ def get_dataset(args, data_path, window_length):
 
 def main():
     args = get_args()
+
+    register_exps_dir(args.task_name)
+
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     print('use_cuda is', use_cuda)
     global_timer = timer()  # global timer
@@ -211,7 +216,7 @@ def main():
     plt.figure()
     plt.title("Loss vs epoch")
     plt.plot(range(len(losses)), losses)
-    plt.savefig("cpc_losses.png")
+    plt.savefig(path.join(args.task_name, "cpc_losses.png"))
     plt.close()
     ## end
     end_global_timer = timer()
@@ -252,10 +257,13 @@ def main():
         for total in totals:
             projects_tmp = np.random.choice(projects.shape[0], total)
             projects_tmp = projects[projects_tmp, :]
+
+            file_name = path.join(args.task_name, f'all_cpc_tsne_perplexity_{perplexity}_{str(total)}_samples.png')
+
             reduce_dims_and_plot(projects_tmp,
                                  y=None,
                                  title=None,
-                                 file_name=f'all_cpc_tsne_perplexity_{perplexity}_{str(total)}_samples.png',
+                                 file_name=file_name,
                                  perplexity=perplexity,
                                  library='Multicore-TSNE',
                                  perform_PCA=False,
