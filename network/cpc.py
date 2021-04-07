@@ -98,7 +98,7 @@ class CDCK2(nn.Module):
             nce += torch.sum(torch.diag(self.lsoftmax(total)))  # nce is a tensor
         nce /= -1. * batch * self.timestep
         accuracy = 1. * correct.item() / (batch * self.timestep)
-
+        print(f"nce.device: {nce.device}")
         return accuracy, nce, hidden, output[:, -1, :]
 
     def predict(self, x, hidden):
