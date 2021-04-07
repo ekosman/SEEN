@@ -21,11 +21,12 @@ class ConvBlock(nn.Module):
 
 
 class CDCK2(nn.Module):
-    def __init__(self, timestep, batch_size, seq_len, in_features):
+    def __init__(self, timestep, batch_size, seq_len, in_features, device):
         super(CDCK2, self).__init__()
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.timestep = timestep
+        self.device = device
 
         strides = [2, 2, 2, 2, 2]
         paddings = [2, 2, 2, 2, 2]
@@ -80,7 +81,7 @@ class CDCK2(nn.Module):
         z = z.transpose(1, 2)
         # print(f"3: {z.shape[0]}")
         nce = 0  # average over timestep and batch
-        encode_samples = torch.empty((self.timestep, batch, self.embedding_dim)).float()  # e.g. size 12*8*512
+        encode_samples = torch.empty((self.timestep, batch, self.embedding_dim)).float().to(self.device)  # e.g. size 12*8*512
         for i in np.arange(1, self.timestep + 1):
             encode_samples[i - 1] = z[:, t_samples + i, :].view(batch, self.embedding_dim)  # z_tk e.g. size 8*512
         forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
@@ -88,7 +89,7 @@ class CDCK2(nn.Module):
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
         print(f"output.device: {output.device}")
         c_t = output[:, -1, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
-        pred = torch.empty((self.timestep, batch, self.embedding_dim)).float()  # e.g. size 12*8*512
+        pred = torch.empty((self.timestep, batch, self.embedding_dim)).float().to(self.device)  # e.g. size 12*8*512
         print(f"pred.device: {pred.device}")
         correct = 0
         for i in np.arange(0, self.timestep):
