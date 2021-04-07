@@ -3,7 +3,6 @@ import torch.nn as nn
 import numpy as np
 
 hidden_dim = 256
-compress_ratio = 250
 
 
 class ConvBlock(nn.Module):
@@ -28,10 +27,10 @@ class CDCK2(nn.Module):
         self.seq_len = seq_len
         self.timestep = timestep
 
-        strides = [2, 2, 2, 2, 2, 2, 2, 2]
-        paddings = [1, 1, 1, 1, 1, 1, 1, 1]
-        kernel_sizes = [3, 3, 3, 3, 3, 3, 3, 3]
-        conv_steps = [in_features, 18, 16, 32, 64, 128, 128, 256, 256]
+        strides = [2, 2, 2, 2, 2]
+        paddings = [2, 2, 2, 2, 2]
+        kernel_sizes = [5, 5, 5, 5, 5]
+        conv_steps = [in_features, 16, 32, 64, 128, 256]
         self.embedding_dim = conv_steps[-1]
         self.encoder = nn.Sequential(
             *[ConvBlock(in_, out_, stride, padding, kernel_size) for in_, out_, stride, padding, kernel_size in
@@ -68,12 +67,13 @@ class CDCK2(nn.Module):
 
     def forward(self, x, hidden):
         batch = x.size()[0]
-        # print(f"1: {x.shape[0]}")
-        t_samples = torch.randint(int(self.seq_len / compress_ratio - self.timestep),
-                                  size=(1,)).long()  # randomly pick time stamps
+
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
-        # print(f"Ratio: {x.shape[2] / z.shape[2]}")
+        compress_ratio = x.shape[2] / z.shape[2]
+        # print(f"Ratio: {compress_ratio}")
+        t_samples = torch.randint(int(self.seq_len / compress_ratio - self.timestep),
+                                  size=(1,)).long()  # randomly pick time stamps
         # print(f"2: {z.shape[0]}")
         # encoded sequence is N*C*L, e.g. 8*512*128
         # reshape to N*L*C for GRU, e.g. 8*128*512

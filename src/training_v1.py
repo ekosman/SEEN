@@ -76,9 +76,9 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
         optimizer.step()
         lr = optimizer.update_learning_rate()
         if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
-                       100. * batch_idx / len(train_loader), lr, acc, loss.item()))
+            print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}'.format(
+                epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset),
+                                    100. * (batch_idx + 1) / len(train_loader), lr, acc, loss.item()))
 
         total_loss += loss.item()
 

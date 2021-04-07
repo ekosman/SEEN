@@ -3,33 +3,25 @@ main for LibriSpeech
 """
 ## Utilities
 from __future__ import print_function
-import argparse
-import random
-import time
-import os
-import logging
-from timeit import default_timer as timer
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-from os import path
-import pickle
 
+import argparse
+import pickle
+import time
+from os import path
+from timeit import default_timer as timer
+
+import matplotlib.pyplot as plt
 ## Libraries
 import numpy as np
-
 ## Torch
 import torch
-import torch.nn as nn
-from torch.utils import data
-import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils import data
+from tqdm import tqdm
 
 ## Custrom Imports
-from network.cpc import CDCK2, compress_ratio
-from src.logger_v1 import setup_logs
-from src.training_v1 import train, trainXXreverse, snapshot
-from src.validation_v1 import validation, validationXXreverse
-
+from network.cpc import CDCK2
+from src.training_v1 import train
 ############ Control Center and Hyperparameter ###############
 from stream_generators.comma_loader import CommaLoader
 from utils.MatplotlibUtils import reduce_dims_and_plot
@@ -88,6 +80,7 @@ def get_args():
     # parser.add_argument('--logging-dir', required=True,
     #                     help='model save directory')
     parser.add_argument('--epochs', type=int, default=60, metavar='N', help='number of epochs to train')
+    parser.add_argument('--test_split_ratio', type=float, default=0.25, help='percentage for using test data')
     parser.add_argument('--features', nargs="+", default='all', help='names of featurse to use for cpc')
     parser.add_argument('--num_workers', type=int, default=2, help='number of workers for the loader')
     parser.add_argument('--n-warmup-steps', type=int, default=50)
@@ -149,12 +142,20 @@ def main():
               'pin_memory': True} if use_cuda else {}
 
     print('===> loading train, validation and eval dataset')
-    training_set = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
+    dataset = get_dataset(args=args, data_path=args.data_path, window_length=args.window_length)
+    train_idx = np.random.choice(len(dataset), int(len(dataset) * (1 - args.test_split_ratio)), replace=False)
+    test_idx = list(set(range(len(dataset))) - set(train_idx))
 
-    train_loader = data.DataLoader(training_set, batch_size=args.batch_size, shuffle=True,
+    train_dataset = data.dataset.Subset(dataset, train_idx)
+    test_dataset = data.dataset.Subset(dataset, test_idx)
+
+    print(f"Length of train dataset: {len(train_dataset)}")
+    print(f"Length of test dataset: {len(test_dataset)}")
+
+    train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                                    **params)  # set shuffle to True
 
-    model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=training_set.n_features)
+    model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=dataset.n_features)
     is_data_parallel = False
     # if use_cuda:
     #     model = nn.DataParallel(model).cuda()
@@ -218,16 +219,16 @@ def main():
     print("Total elapsed time: %s" % (end_global_timer - global_timer))
 
     # Do some TSNE
-    dataset = training_set
-    dataset.set_window_length(args.tsne_window_length)
+    # dataset = training_set
+    # dataset.set_window_length(args.tsne_window_length)
     # dataset = get_dataset(args=args, data_path=args.data_path, window_length=compress_ratio)
-    loader = data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True,
+    loader = data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=True,
                              **params)  # set shuffle to True
 
     projects = torch.tensor([])
     total = args.num_tsne_samples
     count = 0
-    totals = [len(dataset) // 32, len(dataset) // 16, len(dataset) // 8, len(dataset) // 4, len(dataset) // 2, len(dataset)]
+    totals = [len(test_dataset) // 32, len(test_dataset) // 16, len(test_dataset) // 8, len(test_dataset) // 4, len(test_dataset) // 2, len(test_dataset)]
     total = max(totals)
     with torch.no_grad():
         bar = tqdm(total=total)
