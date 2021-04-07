@@ -13,8 +13,8 @@ class KNNLoss(nn.Module):
     def forward(self, x):
         # x = x / x.norm(p=2, dim=1).reshape(-1, 1)
         k = min(self.k + 1, x.shape[0])
-        tree = BallTree(x.detach().numpy(), leaf_size=self.leaf_size)
-        i = tree.query(x.detach().numpy(), return_distance=False, k=k)
+        tree = BallTree(x.detach().cpu().numpy(), leaf_size=self.leaf_size)
+        i = tree.query(x.detach().cpu().numpy(), return_distance=False, k=k)
         i = i[:, 1:]
         loss = 0
         for x_i, (x_, x_neighbors_indices) in enumerate(zip(x, i)):
