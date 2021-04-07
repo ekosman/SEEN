@@ -149,9 +149,6 @@ def main():
     train_dataset = data.dataset.Subset(dataset, train_idx)
     test_dataset = data.dataset.Subset(dataset, test_idx)
 
-    print(f"Length of train dataset: {len(train_dataset)}")
-    print(f"Length of test dataset: {len(test_dataset)}")
-
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                                    **params)  # set shuffle to True
 
@@ -174,6 +171,9 @@ def main():
     model_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('### Model summary below###\n {}\n'.format(str(model)))
     print('===> Model total parameter: {}\n'.format(model_params))
+
+    print(f"Length of train dataset: {len(train_dataset)}")
+    print(f"Length of test dataset: {len(test_dataset)}")
     ## Start training
     best_acc = 0
     best_loss = np.inf
@@ -226,7 +226,6 @@ def main():
                              **params)  # set shuffle to True
 
     projects = torch.tensor([])
-    total = args.num_tsne_samples
     count = 0
     totals = [len(test_dataset) // 32, len(test_dataset) // 16, len(test_dataset) // 8, len(test_dataset) // 4, len(test_dataset) // 2, len(test_dataset)]
     total = max(totals)
