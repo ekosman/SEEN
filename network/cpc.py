@@ -39,7 +39,7 @@ class CDCK2(nn.Module):
 
         self.gru = nn.GRU(self.embedding_dim, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
         self.Wk = nn.ModuleList([nn.Linear(hidden_dim, self.embedding_dim) for i in range(timestep)])
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=0)
         self.lsoftmax = nn.LogSoftmax(dim=0)
 
         def _weights_init(m):
@@ -97,7 +97,7 @@ class CDCK2(nn.Module):
             correct += torch.sum(torch.eq(torch.argmax(self.softmax(total), dim=0), torch.arange(0, batch)))  # correct is a tensor
             nce += torch.sum(torch.diag(self.lsoftmax(total)))  # nce is a tensor
         nce /= -1. * batch * self.timestep
-        accuracy = 1. * correct.item() / batch
+        accuracy = 1. * correct.item() / (batch * self.timestep)
 
         return accuracy, nce, hidden
 
