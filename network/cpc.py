@@ -97,7 +97,7 @@ class CDCK2(nn.Module):
             pred[i] = linear(c_t)  # Wk*c_t e.g. size 8*512
         for i in np.arange(0, self.timestep):
             total = torch.mm(encode_samples[i], torch.transpose(pred[i], 0, 1))  # e.g. size 8*8
-            correct += torch.sum(torch.eq(torch.argmax(self.softmax(total), dim=0), torch.arange(0, batch)))  # correct is a tensor
+            correct += torch.sum(torch.eq(torch.argmax(self.softmax(total), dim=0), torch.arange(0, batch).to(self.device)))  # correct is a tensor
             nce += torch.sum(torch.diag(self.lsoftmax(total)))  # nce is a tensor
         nce /= -1. * batch * self.timestep
         accuracy = 1. * correct.item() / (batch * self.timestep)
