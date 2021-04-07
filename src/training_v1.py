@@ -83,6 +83,9 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
 
         loss_1 = knn_loss(output)
 
+        print(loss.shape)
+        print(loss_1.shape)
+
         loss += loss_1
         loss.backward()
         optimizer.step()
