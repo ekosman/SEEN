@@ -152,7 +152,7 @@ def main():
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                                    **params)  # set shuffle to True
 
-    model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=dataset.n_features)
+    model = CDCK2(args.timestep, args.batch_size, args.window_length, in_features=dataset.n_features, device=device)
     is_data_parallel = False
     # if use_cuda:
     #     model = nn.DataParallel(model).cuda()
