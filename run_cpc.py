@@ -118,10 +118,11 @@ def get_dataset(args, data_path, window_length):
             print(f"Loading dataset {args.dataset} from {file_name}")
             with open(file_name, 'rb') as fp:
                 dataset = pickle.load(fp)
+                dataset.set_window_length(args.window_length)
         else:
             print(f"Creating dataset {args.dataset}")
             dataset = CommaLoader(signals_dataset_path=data_path,
-                                  samples_interval=0.01,
+                                  samples_interval=0.005,
                                   signals_input=args.features,
                                   window_length=window_length,
                                   window_stride=args.window_stride,

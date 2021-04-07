@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-hidden_dim = 8
+hidden_dim = 256
 compress_ratio = 250
 
 
@@ -40,7 +40,7 @@ class CDCK2(nn.Module):
         self.gru = nn.GRU(self.embedding_dim, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
         self.Wk = nn.ModuleList([nn.Linear(hidden_dim, self.embedding_dim) for i in range(timestep)])
         self.softmax = nn.Softmax()
-        self.lsoftmax = nn.LogSoftmax()
+        self.lsoftmax = nn.LogSoftmax(dim=0)
 
         def _weights_init(m):
             if isinstance(m, nn.Linear):
@@ -86,15 +86,15 @@ class CDCK2(nn.Module):
         forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
         # print(f"4: {forward_seq.shape[0]}")
         output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
-        c_t = output[:, t_samples, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
+        c_t = output[:, -1, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
         pred = torch.empty((self.timestep, batch, self.embedding_dim)).float()  # e.g. size 12*8*512
+        correct = 0
         for i in np.arange(0, self.timestep):
             linear = self.Wk[i]
             pred[i] = linear(c_t)  # Wk*c_t e.g. size 8*512
         for i in np.arange(0, self.timestep):
             total = torch.mm(encode_samples[i], torch.transpose(pred[i], 0, 1))  # e.g. size 8*8
-            correct = torch.sum(
-                torch.eq(torch.argmax(self.softmax(total), dim=0), torch.arange(0, batch)))  # correct is a tensor
+            correct += torch.sum(torch.eq(torch.argmax(self.softmax(total), dim=0), torch.arange(0, batch)))  # correct is a tensor
             nce += torch.sum(torch.diag(self.lsoftmax(total)))  # nce is a tensor
         nce /= -1. * batch * self.timestep
         accuracy = 1. * correct.item() / batch
