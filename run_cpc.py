@@ -11,6 +11,8 @@ import logging
 from timeit import default_timer as timer
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from os import path
+import pickle
 
 ## Libraries
 import numpy as np
@@ -111,12 +113,22 @@ def get_dataset(args, data_path, window_length):
         args.features = 'all'
 
     if args.dataset == 'comma':
-        dataset = CommaLoader(signals_dataset_path=data_path,
-                              samples_interval=0.01,
-                              signals_input=args.features,
-                              window_length=window_length,
-                              window_stride=args.window_stride,
-                              sample_stride=args.sample_stride)
+        file_name = "comma.dataset"
+        if path.exists(file_name):
+            print(f"Loading dataset {args.dataset} from {file_name}")
+            with open(file_name, 'rb') as fp:
+                dataset = pickle.load(fp)
+        else:
+            print(f"Creating dataset {args.dataset}")
+            dataset = CommaLoader(signals_dataset_path=data_path,
+                                  samples_interval=0.01,
+                                  signals_input=args.features,
+                                  window_length=window_length,
+                                  window_stride=args.window_stride,
+                                  sample_stride=args.sample_stride)
+            with open(file_name, 'wb') as fp:
+                print(f"Writing dataset {args.dataset} to {file_name}")
+                pickle.dump(dataset, fp, protocol=pickle.HIGHEST_PROTOCOL)
     else:
         raise NotImplementedError(f"Dataset {args.dataset} not implemented")
 
