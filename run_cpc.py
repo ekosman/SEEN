@@ -190,7 +190,7 @@ def main():
     best_acc = 0
     best_loss = np.inf
     best_epoch = -1
-    losses = []
+    losses = None
     for epoch in range(1, args.epochs + 1):
         epoch_timer = timer()
 
@@ -198,7 +198,11 @@ def main():
         # trainXXreverse(args, model, device, train_loader, optimizer, epoch, args.batch_size)
         # val_acc, val_loss = validationXXreverse(args, model, device, validation_loader, args.batch_size)
         loss = train(args, model, device, train_loader, optimizer, epoch, args.batch_size, is_data_parallel)
-        losses.append(loss)
+        if losses is None:
+            losses = {k: [] for k, v in loss.items()}
+
+        for k, v in losses.items():
+            losses[k].append(loss[k])
         # val_acc, val_loss = validation(args, model, device, validation_loader, args.batch_size)
 
         # Save
@@ -222,7 +226,10 @@ def main():
 
     plt.figure()
     plt.title("Loss vs epoch")
-    plt.plot(range(len(losses)), losses)
+    for k, v in losses.items():
+        plt.plot(range(len(v)), v, label=k)
+
+    plt.legend()
     plt.savefig(path.join(args.task_name, "cpc_losses.png"))
     plt.close()
     ## end

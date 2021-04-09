@@ -57,17 +57,21 @@ def train_spk(args, cdc_model, spk_model, device, train_loader, optimizer, epoch
                        100. * batch_idx / len(train_loader), lr, acc, loss.item()))
 
 
-knn_loss = None
+knn_crt = None
 
 
 def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_data_parallel):
-    global knn_loss
-    if knn_loss is None:
-        knn_loss = KNNLoss(k=args.k).to(device)
+    global knn_crt
+    if knn_crt is None:
+        knn_crt = KNNLoss(k=args.k).to(device)
         # knn_loss = KNNLoss(k=batch_size // 64).to(device)
 
     model.train()
-    total_loss = 0
+    total_loss = {
+        'cpc': 0,
+        'knn': 0,
+        'total': 0,
+    }
 
     for batch_idx, data in enumerate(train_loader):
         hidden = CDCK2.init_hidden(len(data))
@@ -80,27 +84,32 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
 
         optimizer.zero_grad()
 
-        acc, loss_1, hidden, output = model(data, hidden)
+        acc, cpc_loss, hidden, output = model(data, hidden)
 
-        loss_2 = knn_loss(output)
+        knn_loss = knn_crt(output)
 
         # print(loss.device)
         # print(loss_1.device)
 
-        loss = loss_1 + loss_2
+        loss = cpc_loss + knn_loss
         loss.backward()
         optimizer.step()
         lr = optimizer.update_learning_rate()
         if batch_idx % args.log_interval == 0:
-            print(f"cpc loss: {loss_1.item()}")
-            print(f"knn loss: {loss_2.item()}")
+            print(f"cpc loss: {cpc_loss.item()}")
+            print(f"knn loss: {knn_loss.item()}")
             print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}'.format(
                 epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset),
                                     100. * (batch_idx + 1) / len(train_loader), lr, acc, loss.item()))
 
-        total_loss += loss.item()
+        total_loss['cpc'] += cpc_loss.item()
+        total_loss['knn'] += knn_loss.item()
+        total_loss['total'] += loss.item()
 
-    return total_loss / len(train_loader)
+    for k, v in total_loss.items():
+        total_loss[k] /= len(train_loader)
+
+    return total_loss
 
 
 def snapshot(dir_path, run_name, state):
