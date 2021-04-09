@@ -25,6 +25,7 @@ from src.training_v1 import train
 ############ Control Center and Hyperparameter ###############
 from stream_generators.comma_loader import CommaLoader
 from utils.MatplotlibUtils import reduce_dims_and_plot
+from utils.email_utils import GmailNotifier
 from utils.utils import register_exps_dir
 
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
@@ -100,7 +101,12 @@ def get_args():
     parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive windows')
     parser.add_argument('--num_tsne_samples', type=int, default=25000, help='how many samples to use for TSNE')
     parser.add_argument('--task_name', type=str, default="exps", help='name to use for the output folder')
-    parser.add_argument('--k', type=int, default=4, help='Number of neighbors for the knn loss')
+    parser.add_argument('--k', type=int, default=4, help='Number of neighbors to consider for the knn loss')
+    parser.add_argument('--send_email', default=False, action='store_true', help='Send an email when finished')
+    parser.add_argument('--email_user', default=r'eitan.kosman', help='Username for sending the email')
+    parser.add_argument('--email_password', default='kqdopssgpcglbwaj', help='Password for sending the email')
+    parser.add_argument('--email_to', default=r'eitan.kosman@gmail.com',
+                        help='Email of the receiver of the results email')
     return parser.parse_args()
 
 
@@ -273,6 +279,10 @@ def main():
                                  show_figure=True,
                                  close_figure=True,
                                  text=None)
+
+    if args.send_email:
+        with GmailNotifier(username=args.email_user, password=args.email_password, to=args.email_to) as noti:
+            noti.send_args_description(args.task_name, args)
 
 
 if __name__ == '__main__':
