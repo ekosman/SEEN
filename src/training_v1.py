@@ -63,7 +63,8 @@ knn_loss = None
 def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_data_parallel):
     global knn_loss
     if knn_loss is None:
-        knn_loss = KNNLoss(k=batch_size // 64).to(device)
+        knn_loss = KNNLoss(k=args.k).to(device)
+        # knn_loss = KNNLoss(k=batch_size // 64).to(device)
 
     model.train()
     total_loss = 0

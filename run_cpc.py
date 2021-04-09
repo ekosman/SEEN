@@ -100,6 +100,7 @@ def get_args():
     parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive windows')
     parser.add_argument('--num_tsne_samples', type=int, default=25000, help='how many samples to use for TSNE')
     parser.add_argument('--task_name', type=str, default="exps", help='name to use for the output folder')
+    parser.add_argument('--k', type=int, default=4, help='Number of neighbors for the knn loss')
     return parser.parse_args()
 
 
