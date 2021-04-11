@@ -39,8 +39,8 @@ class CDCK2(nn.Module):
 
         self.gru = nn.GRU(self.embedding_dim, hidden_dim, num_layers=1, bidirectional=False, batch_first=True)
         self.Wk = nn.ModuleList([nn.Linear(hidden_dim, self.embedding_dim) for i in range(timestep)])
-        self.softmax = nn.Softmax(dim=0)
-        self.lsoftmax = nn.LogSoftmax(dim=0)
+        self.softmax = nn.Softmax(dim=1)
+        self.lsoftmax = nn.LogSoftmax(dim=1)
 
         def _weights_init(m):
             if isinstance(m, nn.Linear):
@@ -105,7 +105,6 @@ class CDCK2(nn.Module):
         return accuracy, nce, hidden, output[:, -1, :]
 
     def predict(self, x, hidden):
-        batch = x.size()[0]
         # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
         # encoded sequence is N*C*L, e.g. 8*512*128
