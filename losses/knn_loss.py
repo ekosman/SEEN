@@ -2,6 +2,13 @@ import torch
 import torch.nn as nn
 from sklearn.neighbors import BallTree
 import numpy as np
+from os import makedirs, path
+import matplotlib.pyplot as plt
+
+
+i = 0
+folder = 'hists'
+makedirs(folder, exist_ok=True)
 
 
 class KNNLoss(nn.Module):
@@ -21,6 +28,13 @@ class KNNLoss(nn.Module):
             diff = x_ - x
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
+
+            plt.figure()
+            plt.hist(distances)
+            file_name = path.join(folder, f"{i}.png")
+            plt.savefig(file_name)
+            plt.close()
+            i += 1
 
             neighbors_distances = distances[x_neighbors_indices]
             distances_wo_x = distances[np.arange(len(x)) != x_i]
