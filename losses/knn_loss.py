@@ -54,7 +54,7 @@ class KNNLoss(nn.Module):
                 ax2.axvline(threshold)
                 # plt.yscale('log')
                 # file_name = path.join(folder, f"{i}.png")
-                # plt.savefig('distance_hist.png')
+                plt.savefig('distance_hist.png')
                 plt.show()
                 plt.close()
 
