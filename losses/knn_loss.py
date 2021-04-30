@@ -33,7 +33,7 @@ class KNNLoss(nn.Module):
             if self.iteration % 5000 == 0:
                 plt.figure()
                 plt.title(f"Iteration {self.iteration}, max distance: {diff.max()}")
-                plt.hist(diff.detach().cpu().numpy(), bins=1000)
+                plt.hist(diff.detach().cpu().numpy(), bins=10000)
                 plt.yscale('log')
                 # file_name = path.join(folder, f"{i}.png")
                 plt.show()
