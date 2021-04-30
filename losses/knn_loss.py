@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 # folder = 'hists'
 # makedirs(folder, exist_ok=True)
+from utils.utils import get_threshold_by_distance
 
 
 class KNNLoss(nn.Module):
@@ -41,10 +42,13 @@ class KNNLoss(nn.Module):
                 plt.show()
                 plt.close()
 
+                chosen = get_threshold_by_distance(diff_)
+
                 plt.figure()
                 plt.title(f"fdsfsd {self.iteration}")
                 plt.plot(diff_, label='distances')
                 plt.plot([0, len(diff_) - 1], [diff_[0], 0], color='r')
+                plt.axvline(chosen, color='g', label=f"chosen threshold: {diff_[chosen]} @ {chosen}")
                 plt.legend()
                 plt.savefig("distances.png")
                 plt.show()
