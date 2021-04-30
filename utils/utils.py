@@ -73,6 +73,7 @@ def get_threshold_by_distance(measures_sorted_flat):
     close_indices, = np.where(ds <= 1e-6)
     closest = close_indices[1] if len(close_indices) >= 2 else np.inf
     chosen = np.clip(min(most_far, closest), 0, len(measures_sorted_flat) - 1)
+    chosen += offset
     try:
         threshold = measures_sorted_flat[chosen]
     except:
