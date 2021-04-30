@@ -36,8 +36,6 @@ class KNNLoss(nn.Module):
             neighbors = [idx for idx in range(len(x)) if idx != x_i and diff[idx] <= threshold]
 
             if self.iteration % 5000 == 0:
-
-
                 plt.figure()
                 plt.title(f"fdsfsd {self.iteration}")
                 plt.plot(diff_, label='distances')

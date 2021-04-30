@@ -66,7 +66,7 @@ def get_threshold_by_distance(measures_sorted_flat):
 
     intersections, = np.where(orig_ds < max(orig_ds)/100)
     offset = intersections[-2]
-    print(f"offset = {offset}")
+    # print(f"offset = {offset}")
     ds = orig_ds[offset:]
 
     most_far = np.argmax(ds) + 1
