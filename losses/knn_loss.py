@@ -47,7 +47,7 @@ class KNNLoss(nn.Module):
                 plt.figure()
                 plt.title(f"fdsfsd {self.iteration}")
                 plt.plot(diff_, label='distances')
-                plt.plot([0, len(diff_) - 1], [diff_[0], 0], color='r')
+                plt.plot([0, len(diff_) - 1], [diff_[0], diff_[-1]], color='r')
                 plt.plot(ds, label='difference')
                 plt.axvline(chosen, color='g', label=f"chosen threshold: {diff_[chosen]} @ {chosen}")
                 plt.legend()
