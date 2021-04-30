@@ -32,7 +32,8 @@ class KNNLoss(nn.Module):
             distances = torch.exp(-diff)
 
             if self.iteration % 5000 == 0:
-                diff_ = list(reversed(sorted(diff.detach().cpu().numpy())))
+                diff_ = diff[np.arange(len(x)) != x_i]
+                diff_ = list(reversed(sorted(diff_.detach().cpu().numpy())))
 
                 chosen, ds, threshold = get_threshold_by_distance(diff_)
 
