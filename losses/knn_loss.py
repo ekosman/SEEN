@@ -34,6 +34,7 @@ class KNNLoss(nn.Module):
                 plt.figure()
                 plt.title(f"Iteration {self.iteration}")
                 plt.hist(distances.detach().cpu().numpy(), bins=1000)
+                plt.yscale('log')
                 # file_name = path.join(folder, f"{i}.png")
                 plt.show()
                 plt.close()
