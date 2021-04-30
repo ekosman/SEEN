@@ -83,5 +83,5 @@ def get_threshold_by_distance(measures_sorted_flat):
 
     logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
 
-    return chosen
+    return chosen, ds
     # return threshold, chosen, ds, delta
