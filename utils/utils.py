@@ -76,14 +76,15 @@ def get_threshold_by_distance(measures_sorted_flat):
     chosen += offset
     try:
         threshold = measures_sorted_flat[chosen]
+        delta = (max(measures_sorted_flat) - threshold) / chosen
+
+        logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
+
+        return chosen, orig_ds, threshold
+        # return threshold, chosen, ds, delta
     except:
         print(f"most far: {most_far}")
         print(f"closest: {closest}")
         exit()
 
-    delta = (max(measures_sorted_flat) - threshold) / chosen
 
-    logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
-
-    return chosen, orig_ds
-    # return threshold, chosen, ds, delta

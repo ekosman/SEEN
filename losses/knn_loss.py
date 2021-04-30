@@ -33,16 +33,8 @@ class KNNLoss(nn.Module):
 
             if self.iteration % 5000 == 0:
                 diff_ = list(reversed(sorted(diff.detach().cpu().numpy())))
-                plt.figure()
-                plt.title(f"Iteration {self.iteration}, max distance: {diff.max()}")
-                plt.hist(diff_, bins=50)
-                # plt.yscale('log')
-                # file_name = path.join(folder, f"{i}.png")
-                plt.savefig('distance_hist.png')
-                plt.show()
-                plt.close()
 
-                chosen, ds = get_threshold_by_distance(diff_)
+                chosen, ds, threshold = get_threshold_by_distance(diff_)
 
                 plt.figure()
                 plt.title(f"fdsfsd {self.iteration}")
@@ -52,6 +44,16 @@ class KNNLoss(nn.Module):
                 plt.axvline(chosen, color='g', label=f"chosen threshold: {diff_[chosen]} @ {chosen}")
                 plt.legend()
                 plt.savefig("distances.png")
+                plt.show()
+                plt.close()
+
+                plt.figure()
+                plt.title(f"Iteration {self.iteration}, max distance: {diff.max()}")
+                plt.hist(diff_, bins=50)
+                plt.axvline(threshold)
+                # plt.yscale('log')
+                # file_name = path.join(folder, f"{i}.png")
+                plt.savefig('distance_hist.png')
                 plt.show()
                 plt.close()
 
