@@ -224,7 +224,7 @@ class OutputDirs:
         return self
 
 
-def get_clearml_logger(project_name, task_name, tags):
+def get_clearml_logger(project_name, task_name, tags=None):
     task = Task.init(project_name=project_name, task_name=task_name, tags=tags)
     logger = task.get_logger()
     return logger
