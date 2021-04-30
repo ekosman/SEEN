@@ -27,7 +27,7 @@ from stream_generators.comma_loader import CommaLoader
 from utils.DateUtils import get_time_str
 from utils.MatplotlibUtils import reduce_dims_and_plot
 from utils.email_utils import GmailNotifier
-from utils.logging import get_clearml_logger
+from utils.LoggingUtils import get_clearml_logger
 from utils.utils import register_exps_dir
 
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")

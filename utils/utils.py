@@ -1,3 +1,4 @@
+import cProfile
 import logging
 import sys
 import os
@@ -47,7 +48,7 @@ def distance_from_line(p1, p2, p3):
     p2 = np.asarray(p2)
     p3 = np.asarray(p3)
     try:
-        d = np.linalg.norm(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1)
+        d = np.abs(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1)
     except:
         d = 0
     return d
@@ -58,13 +59,20 @@ def get_threshold_by_distance(measures_sorted_flat):
     :param measures_sorted_flat: array of values sorted in descending order
     :return:
     """
-    logging.info(f"find threshold for: {str(measures_sorted_flat)}")
+    # logging.info(f"find threshold for: {str(measures_sorted_flat)}")
 
     p1 = [0, max(measures_sorted_flat)]
     p2 = [len(measures_sorted_flat) - 1, min(measures_sorted_flat)]
-    orig_ds = np.array([distance_from_line(p1, p2, [k, measures_sorted_flat[k]]) for k in range(len(measures_sorted_flat))])
+    # orig_ds = np.array([distance_from_line(p1, p2, [k, measures_sorted_flat[k]]) for k in range(len(measures_sorted_flat))])
 
-    intersections, = np.where(orig_ds < max(orig_ds)/100)
+    orig_ds = distance_from_line(p1, p2, np.vstack([np.arange(len(measures_sorted_flat)), measures_sorted_flat]).T)
+
+    # if (orig_ds == orig_ds_).all():
+    #     print('ok')
+    # else:
+    #     print('no')
+
+    intersections, = np.where(orig_ds < max(orig_ds) / 100)
     offset = intersections[-2]
     # print(f"offset = {offset}")
     ds = orig_ds[offset:]
@@ -78,7 +86,7 @@ def get_threshold_by_distance(measures_sorted_flat):
         threshold = measures_sorted_flat[chosen]
         delta = (max(measures_sorted_flat) - threshold) / chosen
 
-        logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
+        # logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
 
         return chosen, orig_ds, threshold
         # return threshold, chosen, ds, delta
@@ -88,3 +96,10 @@ def get_threshold_by_distance(measures_sorted_flat):
         exit()
 
 
+def run():
+    d = np.linspace(1000, 10, 1000)
+    get_threshold_by_distance(d)
+
+
+if __name__ == '__main__':
+    cProfile.run('run()')
