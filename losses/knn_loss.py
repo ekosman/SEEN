@@ -30,7 +30,7 @@ class KNNLoss(nn.Module):
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
 
-            if self.iteration % 500 == 0:
+            if self.iteration % 5000 == 0:
                 plt.figure()
                 plt.title(f"Iteration {self.iteration}")
                 plt.hist(distances.detach().cpu().numpy())
