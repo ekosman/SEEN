@@ -44,6 +44,7 @@ class KNNLoss(nn.Module):
                 plt.figure()
                 plt.title(f"fdsfsd {self.iteration}")
                 plt.plot(diff_, label='distances')
+                plt.plot([0, len(diff_) - 1], [diff_[0], 0], color='r')
                 plt.legend()
                 plt.savefig("distances.png")
                 plt.show()
