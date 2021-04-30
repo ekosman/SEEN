@@ -29,7 +29,7 @@ class KNNLoss(nn.Module):
         i = i[:, 1:]
         loss = 0
         for x_i, (x_, x_neighbors_indices) in enumerate(zip(x, i)):
-            start_time = time.time()
+            # start_time = time.time()
             diff = x_ - x
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
@@ -38,27 +38,27 @@ class KNNLoss(nn.Module):
             chosen, ds, threshold = get_threshold_by_distance(diff_)
             neighbors = [idx for idx in range(len(x)) if idx != x_i and diff[idx] <= threshold]
 
-            # if self.iteration % 10 == 0:
-            #     plt.figure()
-            #     plt.title(f"fdsfsd {self.iteration}")
-            #     plt.plot(diff_, label='distances')
-            #     plt.plot([0, len(diff_) - 1], [diff_[0], diff_[-1]], color='r')
-            #     plt.plot(ds, label='difference')
-            #     plt.axvline(chosen, color='g', label=f"chosen threshold: {diff_[chosen]} @ {chosen}")
-            #     plt.legend()
-            #     plt.savefig("distances.png")
-            #     plt.show()
-            #     plt.close()
-            #
-            #     plt.figure()
-            #     plt.title(f"Iteration {self.iteration}, max distance: {diff.max()}")
-            #     plt.hist(diff_, bins=50)
-            #     plt.axvline(threshold)
-            #     # plt.yscale('log')
-            #     # file_name = path.join(folder, f"{i}.png")
-            #     plt.savefig('distance_hist.png')
-            #     plt.show()
-            #     plt.close()
+            if self.iteration % 5000 == 0:
+                plt.figure()
+                plt.title(f"fdsfsd {self.iteration}")
+                plt.plot(diff_, label='distances')
+                plt.plot([0, len(diff_) - 1], [diff_[0], diff_[-1]], color='r')
+                plt.plot(ds, label='difference')
+                plt.axvline(chosen, color='g', label=f"chosen threshold: {diff_[chosen]} @ {chosen}")
+                plt.legend()
+                plt.savefig("distances.png")
+                plt.show()
+                plt.close()
+
+                plt.figure()
+                plt.title(f"Iteration {self.iteration}, max distance: {diff.max()}")
+                plt.hist(diff_, bins=50)
+                plt.axvline(threshold)
+                # plt.yscale('log')
+                # file_name = path.join(folder, f"{i}.png")
+                plt.savefig('distance_hist.png')
+                plt.show()
+                plt.close()
 
 
             neighbors_distances = distances[neighbors]
@@ -68,9 +68,9 @@ class KNNLoss(nn.Module):
 
             loss -= torch.log(neighbors_distances / denominator).mean()
 
-            print(f"time: {time.time() - start_time}")
+            # print(f"time: {time.time() - start_time}")
 
-        self.iteration += 1
+            self.iteration += 1
 
         return loss / x.shape[0]
 
