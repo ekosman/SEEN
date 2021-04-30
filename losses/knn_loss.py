@@ -31,12 +31,21 @@ class KNNLoss(nn.Module):
             distances = torch.exp(-diff)
 
             if self.iteration % 5000 == 0:
+                diff_ = list(reversed(sorted(diff.detach().cpu().numpy())))
                 plt.figure()
                 plt.title(f"Iteration {self.iteration}, max distance: {diff.max()}")
-                plt.hist(diff.detach().cpu().numpy(), bins=50)
+                plt.hist(diff_, bins=50)
                 # plt.yscale('log')
                 # file_name = path.join(folder, f"{i}.png")
                 plt.savefig('distance_hist.png')
+                plt.show()
+                plt.close()
+
+                plt.figure()
+                plt.title(f"fdsfsd {self.iteration}")
+                plt.plot(diff_, label='distances')
+                plt.legend()
+                plt.savefig("distances.png")
                 plt.show()
                 plt.close()
 
