@@ -1,3 +1,5 @@
+import time
+
 import torch
 import torch.nn as nn
 from sklearn.neighbors import BallTree
@@ -27,6 +29,7 @@ class KNNLoss(nn.Module):
         i = i[:, 1:]
         loss = 0
         for x_i, (x_, x_neighbors_indices) in enumerate(zip(x, i)):
+            start_time = time.time()
             diff = x_ - x
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
@@ -64,6 +67,8 @@ class KNNLoss(nn.Module):
             denominator = distances_wo_x.sum()
 
             loss -= torch.log(neighbors_distances / denominator).mean()
+
+            print(f"time: {time.time() - start_time}")
 
         self.iteration += 1
 
