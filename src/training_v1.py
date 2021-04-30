@@ -1,3 +1,5 @@
+import time
+
 import torch
 import logging
 import os
@@ -72,7 +74,7 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
         'knn': 0,
         'total': 0,
     }
-
+    start_time = time.time()
     for batch_idx, data in enumerate(train_loader):
         hidden = CDCK2.init_hidden(len(data))
         if is_data_parallel:
@@ -98,8 +100,8 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
         if batch_idx % args.log_interval == 0:
             print(f"cpc loss: {cpc_loss.item()}")
             print(f"knn loss: {knn_loss.item()}")
-            print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}'.format(
-                epoch, args.epochs, batch_idx * len(data), len(train_loader.dataset), 100. * (batch_idx + 1) / len(train_loader), lr, acc, loss.item()))
+            print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}  {} seconds/iteration'.format(
+                epoch, args.epochs, (batch_idx + 1) * len(data), len(train_loader.dataset), 100. * (batch_idx + 1) / len(train_loader), lr, acc, loss.item()), (time.time() - start_time) / (batch_idx + 1))
 
         total_loss['cpc'] += cpc_loss.item()
         total_loss['knn'] += knn_loss.item()
