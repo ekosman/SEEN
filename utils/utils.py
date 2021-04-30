@@ -59,22 +59,16 @@ def get_threshold_by_distance(measures_sorted_flat):
     :param measures_sorted_flat: array of values sorted in descending order
     :return:
     """
-    # logging.info(f"find threshold for: {str(measures_sorted_flat)}")
+    n_points = len(measures_sorted_flat)
+    min_d = min(measures_sorted_flat)
+    max_d = max(measures_sorted_flat)
+    p1 = [0, max_d]
+    p2 = [n_points - 1, min_d]
 
-    p1 = [0, max(measures_sorted_flat)]
-    p2 = [len(measures_sorted_flat) - 1, min(measures_sorted_flat)]
-    # orig_ds = np.array([distance_from_line(p1, p2, [k, measures_sorted_flat[k]]) for k in range(len(measures_sorted_flat))])
+    orig_ds = distance_from_line(p1, p2, np.vstack([np.arange(n_points), measures_sorted_flat]).T)
 
-    orig_ds = distance_from_line(p1, p2, np.vstack([np.arange(len(measures_sorted_flat)), measures_sorted_flat]).T)
-
-    # if (orig_ds == orig_ds_).all():
-    #     print('ok')
-    # else:
-    #     print('no')
-
-    intersections, = np.where(orig_ds < max(orig_ds) / 100)
+    intersections, = np.where(orig_ds < max_d / 100)
     offset = intersections[-2]
-    # print(f"offset = {offset}")
     ds = orig_ds[offset:]
 
     most_far = np.argmax(ds) + 1
@@ -84,7 +78,7 @@ def get_threshold_by_distance(measures_sorted_flat):
     chosen += offset
     try:
         threshold = measures_sorted_flat[chosen]
-        delta = (max(measures_sorted_flat) - threshold) / chosen
+        # delta = (max(measures_sorted_flat) - threshold) / chosen
 
         # logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
 
@@ -96,10 +90,6 @@ def get_threshold_by_distance(measures_sorted_flat):
         exit()
 
 
-def run():
-    d = np.linspace(1000, 10, 1000)
-    get_threshold_by_distance(d)
-
-
 if __name__ == '__main__':
-    cProfile.run('run()')
+    d = np.linspace(1000, 10, 1000)
+    cProfile.run('get_threshold_by_distance(d)')
