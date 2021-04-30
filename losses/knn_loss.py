@@ -6,7 +6,7 @@ from os import makedirs, path
 import matplotlib.pyplot as plt
 
 
-# i = 0
+i = 0
 # folder = 'hists'
 # makedirs(folder, exist_ok=True)
 
@@ -29,11 +29,14 @@ class KNNLoss(nn.Module):
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
 
-            plt.figure()
-            plt.hist(distances)
-            # file_name = path.join(folder, f"{i}.png")
-            plt.show()
-            plt.close()
+            if i % 500 == 0:
+                plt.figure()
+                plt.title(f"Iteration {i}")
+                plt.hist(distances)
+                # file_name = path.join(folder, f"{i}.png")
+                plt.show()
+                plt.close()
+
             i += 1
 
             neighbors_distances = distances[x_neighbors_indices]
