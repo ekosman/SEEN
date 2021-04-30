@@ -6,9 +6,9 @@ from os import makedirs, path
 import matplotlib.pyplot as plt
 
 
-i = 0
-folder = 'hists'
-makedirs(folder, exist_ok=True)
+# i = 0
+# folder = 'hists'
+# makedirs(folder, exist_ok=True)
 
 
 class KNNLoss(nn.Module):
@@ -31,8 +31,8 @@ class KNNLoss(nn.Module):
 
             plt.figure()
             plt.hist(distances)
-            file_name = path.join(folder, f"{i}.png")
-            plt.savefig(file_name)
+            # file_name = path.join(folder, f"{i}.png")
+            plt.show()
             plt.close()
             i += 1
 

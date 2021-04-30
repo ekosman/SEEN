@@ -24,8 +24,10 @@ from network.cpc import CDCK2
 from src.training_v1 import train
 ############ Control Center and Hyperparameter ###############
 from stream_generators.comma_loader import CommaLoader
+from utils.DateUtils import get_time_str
 from utils.MatplotlibUtils import reduce_dims_and_plot
 from utils.email_utils import GmailNotifier
+from utils.logging import get_clearml_logger
 from utils.utils import register_exps_dir
 
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
@@ -107,6 +109,10 @@ def get_args():
     parser.add_argument('--email_password', default='kqdopssgpcglbwaj', help='Password for sending the email')
     parser.add_argument('--email_to', default=r'eitan.kosman@gmail.com',
                         help='Email of the receiver of the results email')
+    parser.add_argument('--enable_clearml_logger',
+                        default=False,
+                        action='store_true',
+                        help="Enable logging to ClearML server")
     return parser.parse_args()
 
 
@@ -140,6 +146,23 @@ def get_dataset(args, data_path, window_length):
 
 def main():
     args = get_args()
+
+    if args.enable_clearml_logger:
+        # tags = [
+        #     f'mode: {args.mode}',
+        #     f'model: {args.model_type}',
+        #     f'steps: {args.conv_steps}',
+        #     f'kernel: {args.conv_kernel}',
+        #     f'stride: {args.conv_stride}',
+        #     f'context: {args.history_window_length}',
+        #     f'delta: {args.future_stride}',
+        #     f'horizon: {args.forecast_window_length}',
+        #     f'alpha: {args.alpha}',
+        # ]
+        clearml_logger = get_clearml_logger(project_name="EntangledExplainableClustering",
+                                            task_name='Train_' + get_time_str(),
+                                            # tags=tagsת
+                                            )
 
     register_exps_dir(args.task_name)
 
