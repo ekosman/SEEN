@@ -62,11 +62,12 @@ def get_threshold_by_distance(measures_sorted_flat):
 
     p1 = [0, max(measures_sorted_flat)]
     p2 = [len(measures_sorted_flat) - 1, min(measures_sorted_flat)]
-    ds = np.array([distance_from_line(p1, p2, [k, measures_sorted_flat[k]]) for k in range(len(measures_sorted_flat))])
+    orig_ds = np.array([distance_from_line(p1, p2, [k, measures_sorted_flat[k]]) for k in range(len(measures_sorted_flat))])
 
-    intersections, = np.where(ds < max(ds)/1000)
+    intersections, = np.where(orig_ds < max(orig_ds)/1000)
     offset = intersections[-1]
-    ds = ds[offset:]
+    print(f"offset = {offset}")
+    ds = orig_ds[offset:]
 
     most_far = np.argmax(ds) + 1
     close_indices, = np.where(ds <= 1e-6)
@@ -83,5 +84,5 @@ def get_threshold_by_distance(measures_sorted_flat):
 
     logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
 
-    return chosen, ds
+    return chosen, orig_ds
     # return threshold, chosen, ds, delta
