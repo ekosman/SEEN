@@ -57,7 +57,6 @@ class KNNLoss(nn.Module):
                 plt.show()
                 plt.close()
 
-            self.iteration += 1
 
             neighbors_distances = distances[neighbors]
             distances_wo_x = distances[np.arange(len(x)) != x_i]
@@ -65,6 +64,8 @@ class KNNLoss(nn.Module):
             denominator = distances_wo_x.sum()
 
             loss -= torch.log(neighbors_distances / denominator).mean()
+
+        self.iteration += 1
 
         return loss / x.shape[0]
 
