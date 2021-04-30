@@ -101,7 +101,15 @@ def train(args, model, device, train_loader, optimizer, epoch, batch_size, is_da
             print(f"cpc loss: {cpc_loss.item()}")
             print(f"knn loss: {knn_loss.item()}")
             print('Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tlr:{:.5f}\tAccuracy: {:.4f}\tLoss: {:.6f}  {} seconds/iteration'.format(
-                epoch, args.epochs, (batch_idx + 1) * len(data), len(train_loader.dataset), 100. * (batch_idx + 1) / len(train_loader), lr, acc, loss.item()), (time.time() - start_time) / (batch_idx + 1))
+                epoch,
+                args.epochs,
+                (batch_idx + 1) * len(data),
+                len(train_loader.dataset),
+                100. * (batch_idx + 1) / len(train_loader),
+                lr,
+                acc,
+                loss.item(),
+                (time.time() - start_time)/(batch_idx + 1)))
 
         total_loss['cpc'] += cpc_loss.item()
         total_loss['knn'] += knn_loss.item()
