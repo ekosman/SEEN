@@ -63,6 +63,11 @@ def get_threshold_by_distance(measures_sorted_flat):
     p1 = [0, max(measures_sorted_flat)]
     p2 = [len(measures_sorted_flat) - 1, min(measures_sorted_flat)]
     ds = np.array([distance_from_line(p1, p2, [k, measures_sorted_flat[k]]) for k in range(len(measures_sorted_flat))])
+
+    intersections, = np.where(ds < max(ds)/1000)
+    offset = intersections[-1]
+    ds = ds[offset:]
+
     most_far = np.argmax(ds) + 1
     close_indices, = np.where(ds <= 1e-6)
     closest = close_indices[1] if len(close_indices) >= 2 else np.inf
