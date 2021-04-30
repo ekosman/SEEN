@@ -65,7 +65,7 @@ def get_threshold_by_distance(measures_sorted_flat):
     orig_ds = np.array([distance_from_line(p1, p2, [k, measures_sorted_flat[k]]) for k in range(len(measures_sorted_flat))])
 
     intersections, = np.where(orig_ds < max(orig_ds)/1000)
-    offset = intersections[-1]
+    offset = intersections[-2]
     print(f"offset = {offset}")
     ds = orig_ds[offset:]
 
