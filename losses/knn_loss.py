@@ -6,7 +6,7 @@ from os import makedirs, path
 import matplotlib.pyplot as plt
 
 
-i = 0
+
 # folder = 'hists'
 # makedirs(folder, exist_ok=True)
 
@@ -16,6 +16,7 @@ class KNNLoss(nn.Module):
         super(KNNLoss, self).__init__()
         self.k = k
         self.leaf_size = leaf_size
+        self.iteration = 0
 
     def forward(self, x):
         # x = x / x.norm(p=2, dim=1).reshape(-1, 1)
@@ -29,7 +30,7 @@ class KNNLoss(nn.Module):
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
 
-            if i % 500 == 0:
+            if self.iteration % 500 == 0:
                 plt.figure()
                 plt.title(f"Iteration {i}")
                 plt.hist(distances)
@@ -37,7 +38,7 @@ class KNNLoss(nn.Module):
                 plt.show()
                 plt.close()
 
-            i += 1
+            self.iteration += 1
 
             neighbors_distances = distances[x_neighbors_indices]
             distances_wo_x = distances[np.arange(len(x)) != x_i]
