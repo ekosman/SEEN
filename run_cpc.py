@@ -167,7 +167,7 @@ def main():
                                             )
 
     register_exps_dir(args.exps_dir)
-    model_dir = path.join(args.exps, 'models')
+    model_dir = path.join(args.exps_dir, 'models')
     register_exps_dir(model_dir)
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
