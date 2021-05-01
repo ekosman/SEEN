@@ -318,7 +318,7 @@ def main():
                                  perform_PCA=False,
                                  projected=None,
                                  figure_type='2d',
-                                 show_figure=True,
+                                 show_figure=False,
                                  close_figure=True,
                                  text=None)
 
