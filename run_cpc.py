@@ -5,6 +5,7 @@ main for LibriSpeech
 from __future__ import print_function
 
 import argparse
+import os
 import pickle
 import time
 from os import path
@@ -88,6 +89,7 @@ def get_args():
     parser.add_argument('--features', nargs="+", default='all', help='names of featurse to use for cpc')
     parser.add_argument('--num_workers', type=int, default=2, help='number of workers for the loader')
     parser.add_argument('--n-warmup-steps', type=int, default=50)
+    parser.add_argument('--save_every', type=int, default=2)
     parser.add_argument('--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('--device', type=int, default=7, help='which gpu to use')
     parser.add_argument('--audio_window', type=int, default=20480, help='window length to sample from each utterance')
@@ -102,7 +104,7 @@ def get_args():
     parser.add_argument('--sample_stride', type=int, default=1, help='interval between two consecutive samples')
     parser.add_argument('--window_stride', type=int, default=50, help='interval between two consecutive windows')
     parser.add_argument('--num_tsne_samples', type=int, default=25000, help='how many samples to use for TSNE')
-    parser.add_argument('--task_name', type=str, default="exps", help='name to use for the output folder')
+    parser.add_argument('--exps_dir', type=str, default="exps", help='name to use for the output folder')
     parser.add_argument('--k', type=int, default=4, help='Number of neighbors to consider for the knn loss')
     parser.add_argument('--send_email', default=False, action='store_true', help='Send an email when finished')
     parser.add_argument('--email_user', default=r'eitan.kosman', help='Username for sending the email')
@@ -164,7 +166,9 @@ def main():
                                             # tags=tagsת
                                             )
 
-    register_exps_dir(args.task_name)
+    register_exps_dir(args.exps_dir)
+    model_dir = path.join(args.exps, 'models')
+    register_exps_dir(model_dir)
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     print('use_cuda is', use_cuda)
@@ -214,6 +218,8 @@ def main():
     best_loss = np.inf
     best_epoch = -1
     losses = None
+    epoch = 0
+
     for epoch in range(1, args.epochs + 1):
         epoch_timer = timer()
 
@@ -228,6 +234,9 @@ def main():
             losses[k].append(loss[k])
         # val_acc, val_loss = validation(args, model, device, validation_loader, args.batch_size)
 
+        if epoch % args.save_every == 0:
+            model_path = path.join(model_dir, f'epoch_{epoch}.pt')
+            torch.save(model, model_path)
         # Save
         # if val_acc > best_acc:
         #     best_acc = max(val_acc, best_acc)
@@ -247,13 +256,16 @@ def main():
         end_epoch_timer = timer()
         print("#### End epoch {}/{}, elapsed time: {}".format(epoch, args.epochs, end_epoch_timer - epoch_timer))
 
+    model_path = path.join(model_dir, f'epoch_{epoch}.pt')
+    torch.save(model, model_path)
+
     plt.figure()
     plt.title("Loss vs epoch")
     for k, v in losses.items():
         plt.plot(range(len(v)), v, label=k)
 
     plt.legend()
-    plt.savefig(path.join(args.task_name, "cpc_losses.png"))
+    plt.savefig(path.join(args.exps_dir, "cpc_losses.png"))
     plt.close()
     ## end
     end_global_timer = timer()
@@ -295,7 +307,7 @@ def main():
             projects_tmp = np.random.choice(projects.shape[0], total)
             projects_tmp = projects[projects_tmp, :]
 
-            file_name = path.join(args.task_name, f'all_cpc_tsne_perplexity_{perplexity}_{str(total)}_samples.png')
+            file_name = path.join(args.exps_dir, f'all_cpc_tsne_perplexity_{perplexity}_{str(total)}_samples.png')
 
             reduce_dims_and_plot(projects_tmp,
                                  y=None,
@@ -312,7 +324,7 @@ def main():
 
     if args.send_email:
         with GmailNotifier(username=args.email_user, password=args.email_password, to=args.email_to) as noti:
-            noti.send_args_description(args.task_name, args)
+            noti.send_args_description(args.exps_dir, args)
 
 
 if __name__ == '__main__':
