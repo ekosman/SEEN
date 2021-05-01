@@ -68,6 +68,7 @@ def get_threshold_by_distance(measures_sorted_flat):
     orig_ds = distance_from_line(p1, p2, np.vstack([np.arange(n_points), measures_sorted_flat]).T)
 
     intersections, = np.where(orig_ds < max_d / 100)
+
     offset = intersections[-2]
     ds = orig_ds[offset:]
 
