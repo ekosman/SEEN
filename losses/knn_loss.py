@@ -33,12 +33,12 @@ class KNNLoss(nn.Module):
             diff = x_ - x
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
-            diff_ = diff[np.arange(len(x)) != x_i]
-            diff_ = list(reversed(sorted(diff_.detach().cpu().numpy())))
-            chosen, ds, threshold = get_threshold_by_distance(diff_)
-            neighbors = [idx for idx in range(len(x)) if idx != x_i and diff[idx] <= threshold]
-            if len(neighbors) < k:
-                neighbors = x_neighbors_indices
+            # diff_ = diff[np.arange(len(x)) != x_i]
+            # diff_ = list(reversed(sorted(diff_.detach().cpu().numpy())))
+            # chosen, ds, threshold = get_threshold_by_distance(diff_)
+            # neighbors = [idx for idx in range(len(x)) if idx != x_i and diff[idx] <= threshold]
+            # if len(neighbors) < k:
+            neighbors = x_neighbors_indices
 
             # if self.iteration % 5000 == 0:
             #     plt.figure()
