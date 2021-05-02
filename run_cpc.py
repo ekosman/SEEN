@@ -168,7 +168,9 @@ def main():
 
     register_exps_dir(args.exps_dir)
     model_dir = path.join(args.exps_dir, 'models')
+    data_dir = path.join(args.exps_dir, 'data')
     register_exps_dir(model_dir)
+    register_exps_dir(data_dir)
 
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     print('use_cuda is', use_cuda)
@@ -187,6 +189,17 @@ def main():
 
     train_dataset = data.dataset.Subset(dataset, train_idx)
     test_dataset = data.dataset.Subset(dataset, test_idx)
+
+    train_dataset_path = path.join(data_dir, 'train_data.file')
+    test_dataset_path = path.join(data_dir, 'test_data.file')
+
+    print(f"Dumping training dataset to {train_dataset_path}")
+    with open(train_dataset_path, 'wb') as fp:
+        pickle.dump(train_dataset, fp, protocol=pickle.HIGHEST_PROTOCOL)
+
+    print(f"Dumping testing dataset to {test_dataset_path}")
+    with open(test_dataset_path, 'wb') as fp:
+        pickle.dump(test_dataset, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                                    **params)  # set shuffle to True
