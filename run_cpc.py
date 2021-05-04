@@ -85,7 +85,7 @@ def get_args():
     # parser.add_argument('--logging-dir', required=True,
     #                     help='model save directory')
     parser.add_argument('--epochs', type=int, default=60, metavar='N', help='number of epochs to train')
-    parser.add_argument('--test_split_ratio', type=float, default=0.25, help='percentage for using test data')
+    parser.add_argument('--test_split_ratio', type=float, default=0.2, help='percentage for using test data')
     parser.add_argument('--features', nargs="+", default='all', help='names of featurse to use for cpc')
     parser.add_argument('--num_workers', type=int, default=2, help='number of workers for the loader')
     parser.add_argument('--n-warmup-steps', type=int, default=50)

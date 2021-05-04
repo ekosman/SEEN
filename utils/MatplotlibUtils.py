@@ -153,11 +153,12 @@ def reduce_dims_and_plot(x,
             logging.info("PCA...")
             x = PCA(n_components=8).fit_transform(x)
 
+        n_components = 2 if figure_type == '2d' else 3
         logging.info("TSNE...")
         if library == 'sklearn':
-            projected = sklearnTSNE(n_components=2, verbose=2, perplexity=perplexity).fit_transform(x)
+            projected = sklearnTSNE(n_components=n_components, verbose=2, perplexity=perplexity).fit_transform(x)
         elif library == 'Multicore-TSNE':
-            projected = UlyanovTSNE(n_components=2, verbose=2, perplexity=perplexity, n_jobs=8, n_iter=600).fit_transform(x)
+            projected = UlyanovTSNE(n_components=n_components, verbose=2, perplexity=perplexity, n_jobs=8, n_iter=1000).fit_transform(x)
         else:
             raise NotImplementedError(f'Can\'t find implementation of TSNE using {library}')
 
@@ -182,7 +183,7 @@ def reduce_dims_and_plot(x,
             ax.set_prop_cycle(get_color_cycler(cmap='gist_rainbow', n_colors=n_classes))
             for i_c, c in enumerate(classes):
                 idx, = np.where(y == c)
-                ax.plot(projected[idx, 0], projected[idx, 1], np.ones(len(idx))*i_c, label=str(c), linestyle="None", marker='.', **plt_kwargs)
+                ax.plot(projected[idx, 0], projected[idx, 1], projected[idx, 2], label=str(c), linestyle="None", marker='.', **plt_kwargs)
                 plt.legend()
 
             ax.view_init(azim=0, elev=-90)
