@@ -125,9 +125,10 @@ class ClipLoader(data.Dataset):
         data = pd.concat(data)
         return data[self.signals_output]
 
-    def apply_normalization(self, data, mean_value, std_value):
+    def apply_normalization(self, data, mean_value, std_value, max_value):
         for col in data.columns:
-            data[col] = (data[col] - mean_value[col]) / std_value[col]
+            # data[col] = (data[col] - mean_value[col]) / std_value[col]
+            data[col] = data[col] / max_value[col]
 
         return data
 
@@ -145,7 +146,7 @@ class ClipLoader(data.Dataset):
 
     def normalize_data(self, data):
         """
-        Normalizes the data using z-score
+        Normalizes the data using min/max
         Args:
             data: list or dictionary of data-frames containing the signals data
 
@@ -357,7 +358,7 @@ show_errors = {self.show_errors}
             if random.random() < self.flip_prob and steering_name is not None:
                 data_df[steering_name] *= -1
 
-        data_df = self.apply_normalization(data_df, self.sensor_means, self.sensor_stds)
+        data_df = self.apply_normalization(data_df, self.sensor_means, self.sensor_stds, self.sensor_maxs)
         signals = self.to_chunks(data_df=data_df, idx=idx)
 
         return signals

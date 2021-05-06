@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from soft_decision_tree.sdt_model import SDT
 # from six.moves import urllib
+from utils.ClassificationUtiols import onehot_coding
 
 from utils.utils import register_logger
 
@@ -32,12 +33,6 @@ def get_args():
     return parser.parse_args()
 
 
-def onehot_coding(target, device, output_dim):
-    """Convert the class labels into one-hot encoded vectors."""
-    target_onehot = torch.FloatTensor(target.size()[0], output_dim).to(device)
-    target_onehot.data.zero_()
-    target_onehot.scatter_(1, target.view(-1, 1), 1.0)
-    return target_onehot
 
 
 def get_data(batch_size):
@@ -109,7 +104,6 @@ if __name__ == "__main__":
 
             batch_size = data.size()[0]
             data, target = data.to(device), target.to(device)
-            target_onehot = onehot_coding(target, device, output_dim)
 
             output, penalty = tree.forward(data)
 
@@ -141,7 +135,7 @@ if __name__ == "__main__":
                 training_loss_list.append(loss.cpu().data.numpy())
 
         # plt.figure(figsize=(300, 10), dpi=80)
-        avg_height = tree.visualize()
+        avg_height, root = tree.visualize()
         heights.append(avg_height)
         # plt.savefig(f"tree_epoch_{epoch}_avg_height_{avg_height}.png")
         # plt.close()

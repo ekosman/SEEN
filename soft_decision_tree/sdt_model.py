@@ -1,3 +1,5 @@
+from collections import deque
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -5,13 +7,44 @@ from queue import Queue
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from data_structures.tree_condition import TreeCondition
+
 
 class Node:
-    def __init__(self, depth):
+    def __init__(self, depth, index, weights=None):
         self.left = None
         self.right = None
         self._class = None
         self.depth = depth
+        self.index = index
+        self.weights = weights
+        self.visited = False
+
+    @property
+    def n_weights(self):
+        return (abs(self.weights) > 0).sum().item()
+
+    def is_leaf(self):
+        return self.left is None and self.right is None
+
+    def get_condition(self, attr_names):
+        return TreeCondition(self.weights, attr_names)
+
+    def reset(self):
+        """
+        Clears the reset flag of the sub-tree
+        """
+        q = deque()
+        q.append(self)
+
+        while len(q) != 0:
+            node = q.popleft()
+            if node.left is not None:
+                node.left.visited = False
+                q.append(node.left)
+            if node.right is not None:
+                node.right.visited = False
+                q.append(node.right)
 
 
 class SDT(nn.Module):
@@ -90,15 +123,23 @@ class SDT(nn.Module):
         return list(self.leaf_nodes.cpu().detach().argmax(dim=1).numpy())
 
     def get_tree(self):
-        root = Node(depth=0)
+        weights = self.inner_nodes.weight.cpu().detach().numpy()
+        root = Node(depth=0, index=0, weights=weights[0, :])
         q = Queue()
         q.put(root)
         leaf_i = 0
         while not q.empty():
             node = q.get()
             if node.depth < self.depth:
-                node.left = Node(node.depth + 1)
-                node.right = Node(node.depth + 1)
+                if node.depth == self.depth - 1:
+                    weights_left = None
+                    weights_right = None
+                else:
+                    weights_left = weights[node.index * 2 + 1, :]
+                    weights_right = weights[node.index * 2 + 2, :]
+
+                node.left = Node(node.depth + 1, node.index * 2 + 1, weights_left)
+                node.right = Node(node.depth + 1, node.index * 2 + 2, weights_right)
                 q.put(node.left)
                 q.put(node.right)
             if node.depth == self.depth:
@@ -143,7 +184,7 @@ class SDT(nn.Module):
 
         while not q.empty():
             node, node_i = q.get()
-            labels[node_i] = node._class if node._class is not None else ''
+            labels[node_i] = node._class if node._class is not None else node.n_weights
             if node._class is not None:
                 # leaf node
                 continue
@@ -162,7 +203,7 @@ class SDT(nn.Module):
         plt.title(f"Average height: {avg_height}")
         pos = nx.drawing.nx_agraph.graphviz_layout(A, prog='dot')
         nx.draw(A, pos, with_labels=True, arrows=True, labels=labels)
-        return avg_height
+        return avg_height, root
 
     @staticmethod
     def prune(node):
@@ -202,7 +243,7 @@ class SDT(nn.Module):
         _mu = X.data.new(batch_size, 1, 1).fill_(1.0)
         _penalty = torch.tensor(0.0).to(self.device)
 
-        # Iterate through internal odes in each layer to compute the final path
+        # Iterate through internal nodes in each layer to compute the final path
         # probabilities and the regularization term.
         begin_idx = 0
         end_idx = 1
