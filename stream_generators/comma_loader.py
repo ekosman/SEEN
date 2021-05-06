@@ -19,6 +19,7 @@ class CommaLoader(ClipLoader):
 
     def _get_video_list(self):
         super(CommaLoader, self)._get_video_list()
+        print("Creating video list...")
         video_names = []
         for root, dirs, files in os.walk(self.signals_dataset_path):
             for file in files:
@@ -30,6 +31,7 @@ class CommaLoader(ClipLoader):
 
     def _load_sensors_data(self):
         super(CommaLoader, self)._load_sensors_data()
+        print("Loading data...")
         data = dict()
         can_signals = ['speed', 'steering_angle', 'wheel_speed']
         imu_signals = ['accelerometer', 'gyro', 'gyro_bias', 'gyro_uncalibrated']
