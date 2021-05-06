@@ -156,7 +156,7 @@ class ClipLoader(data.Dataset):
             data_to_normalize = [v for k, v in data.items()]
 
         conc_data = pd.concat(data_to_normalize)
-        max_value = conc_data.max()
+        max_value = conc_data.abs().max()
         mean_value = conc_data.mean()
         conc_data -= mean_value
         std_value = conc_data.std()
@@ -178,7 +178,8 @@ class ClipLoader(data.Dataset):
 
     def get_denormalization_for_sensor(self, sensor_name):
         def inner(sensor_data):
-            return sensor_data * self.sensor_stds[sensor_name] + self.sensor_means[sensor_name]
+            return sensor_data * self.sensor_maxs[sensor_name]
+            # return sensor_data * self.sensor_stds[sensor_name] + self.sensor_means[sensor_name]
 
         return inner
 
