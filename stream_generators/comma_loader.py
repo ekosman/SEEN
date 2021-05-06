@@ -48,9 +48,9 @@ class CommaLoader(ClipLoader):
             # Load times and signals
             for signal in all_signals:
                 if signal in can_signals:
-                    signal_dir = path.join(self.signals_dataset_path, video_name, 'processed_log', 'CAN', signal)
+                    signal_dir = path.join(video_name, 'processed_log', 'CAN', signal)
                 elif signal in imu_signals:
-                    signal_dir = path.join(self.signals_dataset_path, video_name, 'processed_log', 'IMU', signal)
+                    signal_dir = path.join(video_name, 'processed_log', 'IMU', signal)
                 else:
                     raise Exception(f"Unknown signal {signal}")
 
