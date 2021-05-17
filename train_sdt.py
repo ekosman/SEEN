@@ -14,6 +14,7 @@ from utils.ClassificationUtiols import onehot_coding
 
 from utils.utils import register_logger
 
+
 # opener = urllib.request.build_opener()
 # opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 # urllib.request.install_opener(opener)
@@ -21,18 +22,16 @@ from utils.utils import register_logger
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--depth', type=int, default=6)
+    parser.add_argument('--depth', type=int, default=4)
     parser.add_argument('--epochs', type=int, default=51)
     parser.add_argument('--log_interval', type=int, default=10)
-    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--batch_size', type=int, default=10)
     parser.add_argument('--entropy_lamda', type=float, default=1e-3)
     parser.add_argument('--sparsity_lamda', type=float, default=1e-3)
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--weight_decay', type=float, default=5e-4)
 
     return parser.parse_args()
-
-
 
 
 def get_data(batch_size):

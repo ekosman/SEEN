@@ -205,6 +205,11 @@ class SDT(nn.Module):
         nx.draw(A, pos, with_labels=True, arrows=True, labels=labels)
         return avg_height, root
 
+    def prune_weights(self, threshold):
+        self.inner_nodes.weight.data = torch.mul(
+            torch.gt(torch.abs(self.inner_nodes.weight), threshold).float(), self.inner_nodes.weight
+        )
+
     @staticmethod
     def prune(node):
         if node.left is None and node.right is None:
