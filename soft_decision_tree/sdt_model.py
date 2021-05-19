@@ -58,6 +58,14 @@ class Node:
         self.min_thresh = min(self.min_thresh, prob.min())
         self.max_thresh = max(self.max_thresh, prob.max())
 
+    def clear_leaves_samples(self):
+        if self.is_leaf():
+            self.samples = None
+            return
+
+        self.left.clear_leaves_samples()
+        self.right.clear_leaves_samples()
+
     def accumulate_samples(self, x, method='greedy', maxs=None, accumulated_prob=None):
         if method == 'greedy':
             if self.is_leaf():
