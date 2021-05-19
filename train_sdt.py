@@ -133,8 +133,15 @@ if __name__ == "__main__":
                 print(msg.format(epoch, batch_idx, len(train_loader), loss.item(), correct.item() / batch_size))
                 training_loss_list.append(loss.cpu().data.numpy())
 
-        # plt.figure(figsize=(300, 10), dpi=80)
+        plt.figure(figsize=(300, 10), dpi=80)
         avg_height, root = tree.visualize()
+        root.accumulate_samples(data, 'MLE')
+        leaves = root.get_leaves()
+        for leaf in leaves:
+            leaf.reset_path()
+            leaf.update_path(data)
+
+        conds = leaf.get_path_conditions(['a' for _ in range(28*28)])
         heights.append(avg_height)
         # plt.savefig(f"tree_epoch_{epoch}_avg_height_{avg_height}.png")
         # plt.close()

@@ -1,17 +1,20 @@
 from collections import deque
+from queue import Queue
 
+import matplotlib.pyplot as plt
+import networkx as nx
 import torch
 import torch.nn as nn
-import numpy as np
-from queue import Queue
-import networkx as nx
-import matplotlib.pyplot as plt
-
+import torch.nn.functional as F
 from data_structures.tree_condition import TreeCondition
 
 
+def inverse_sigmoid(x):
+    return torch.log(1 / (1 - x))
+
+
 class Node:
-    def __init__(self, depth, index, weights=None):
+    def __init__(self, depth, index, weights=None, is_root=False, parent=None):
         self.left = None
         self.right = None
         self._class = None
@@ -19,6 +22,89 @@ class Node:
         self.index = index
         self.weights = weights
         self.visited = False
+        self.decision_function = None
+        self.samples = None
+        self.is_root = is_root
+        self.parent = parent
+        self.min_thresh = float('inf')
+        self.max_thresh = -float('inf')
+
+    def get_leaves(self):
+        if self.is_leaf():
+            return [self]
+
+        return self.left.get_leaves() + self.right.get_leaves()
+
+    def __call__(self, x):
+        x = x.view(x.shape[0], -1)
+        return F.sigmoid(F.linear(input=x, weight=torch.tensor(self.weights[1:]).reshape(1, -1), bias=torch.tensor(self.weights[0])))
+
+    def reset_path(self):
+        self.min_thresh = float('inf')
+        self.max_thresh = -float('inf')
+        self.samples = None
+        if self.parent is not None:
+            self.parent.reset_path()
+
+    def update_path(self, x):
+        if not self.is_leaf():
+            self.update_thresholds(x)
+
+        if self.parent is not None:
+            self.parent.update_path(x)
+
+    def update_thresholds(self, x):
+        prob = self(x)
+        self.min_thresh = min(self.min_thresh, prob.min())
+        self.max_thresh = max(self.max_thresh, prob.max())
+
+    def accumulate_samples(self, x, method='greedy', maxs=None, accumulated_prob=None):
+        if method == 'greedy':
+            if self.is_leaf():
+                if self.samples is None:
+                    self.samples = torch.tensor([])
+
+                self.samples = torch.cat([self.samples, x])
+                return
+
+            prob = self(x)
+            left_idx = (prob <= 0.5).view(-1)
+            right_idx = (prob > 0.5).view(-1)
+            if left_idx.sum() != 0:
+                self.left.accumulate_samples(x[left_idx], method)
+            if right_idx.sum() != 0:
+                self.right.accumulate_samples(x[right_idx], method)
+        elif method == 'MLE':
+            if self.is_leaf():
+                return torch.ones(x.shape[0], 1)
+            prob = self(x)
+            # the following contains the probabilites for each samples for each leaf
+            left_probs = self.left.accumulate_samples(x, method) * prob
+            right_probs = self.right.accumulate_samples(x, method) * (1 - prob)
+            all_probs = torch.cat([left_probs, right_probs], dim=1)
+            if self.is_root:
+                maxs = all_probs.max(dim=1)[1]
+                leaves = self.get_leaves()
+                for leaf_idx, leaf in enumerate(leaves):
+                    sample_idx = (maxs == leaf_idx)
+                    if leaf.samples is None:
+                        leaf.samples = torch.tensor([])
+
+                    leaf.samples = torch.cat([leaf.samples, x[sample_idx]])
+                # self.accumulate_samples(x, 'accumulate MLE', maxs, torch.ones(x.shape[0]))
+            else:
+                return all_probs
+        elif method == 'accumulate MLE':
+            if self.is_leaf():
+                if self.samples is None:
+                    self.samples = torch.tensor([])
+
+                self.samples = torch.cat([self.samples, x[accumulated_prob == maxs]])
+                return
+
+            prob = self(x).view(-1)
+            self.left.accumulate_samples(x, method, maxs, accumulated_prob * prob)
+            self.right.accumulate_samples(x, method, maxs, accumulated_prob * (1 - prob))
 
     @property
     def n_weights(self):
@@ -30,9 +116,32 @@ class Node:
     def get_condition(self, attr_names):
         return TreeCondition(self.weights, attr_names)
 
+    def get_path_conditions(self, attr_names):
+        if self.is_leaf():
+            if self.parent is None:
+                return []
+
+            return self.parent.get_path_conditions(attr_names)
+
+        bias = self.weights[0]
+        weights = self.weights[1:]
+
+        min_thresh = inverse_sigmoid(self.min_thresh) - bias
+        max_thresh = inverse_sigmoid(self.max_thresh) - bias
+
+        res = [
+            TreeCondition(weights=weights, names=attr_names, sign='>=', bias=min_thresh),
+            TreeCondition(weights=weights, names=attr_names, sign='<=', bias=max_thresh)
+        ]
+
+        if self.parent is not None:
+            res += self.parent.get_path_conditions(attr_names)
+
+        return res
+
     def reset(self):
         """
-        Clears the reset flag of the sub-tree
+        Clears the visited flag of the sub-tree
         """
         q = deque()
         q.append(self)
@@ -124,7 +233,7 @@ class SDT(nn.Module):
 
     def get_tree(self):
         weights = self.inner_nodes.weight.cpu().detach().numpy()
-        root = Node(depth=0, index=0, weights=weights[0, :])
+        root = Node(depth=0, index=0, weights=weights[0, :], is_root=True)
         q = Queue()
         q.put(root)
         leaf_i = 0
@@ -138,8 +247,8 @@ class SDT(nn.Module):
                     weights_left = weights[node.index * 2 + 1, :]
                     weights_right = weights[node.index * 2 + 2, :]
 
-                node.left = Node(node.depth + 1, node.index * 2 + 1, weights_left)
-                node.right = Node(node.depth + 1, node.index * 2 + 2, weights_right)
+                node.left = Node(depth=node.depth + 1, index=node.index * 2 + 1, weights=weights_left, is_root=False, parent=node)
+                node.right = Node(depth=node.depth + 1, index=node.index * 2 + 2, weights=weights_right, is_root=False, parent=node)
                 q.put(node.left)
                 q.put(node.right)
             if node.depth == self.depth:
