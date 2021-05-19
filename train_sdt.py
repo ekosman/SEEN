@@ -139,9 +139,8 @@ if __name__ == "__main__":
         leaves = root.get_leaves()
         for leaf in leaves:
             leaf.reset_path()
-            leaf.update_path(data)
-
-        conds = leaf.get_path_conditions(['a' for _ in range(28*28)])
+            leaf.tighten_with_accumulated_samples()
+            conds = leaf.get_path_conditions(['a' for _ in range(28*28)])
         heights.append(avg_height)
         # plt.savefig(f"tree_epoch_{epoch}_avg_height_{avg_height}.png")
         # plt.close()

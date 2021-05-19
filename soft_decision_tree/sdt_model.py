@@ -39,24 +39,37 @@ class Node:
         x = x.view(x.shape[0], -1)
         return F.sigmoid(F.linear(input=x, weight=torch.tensor(self.weights[1:]).reshape(1, -1), bias=torch.tensor(self.weights[0])))
 
-    def reset_path(self):
+    def reset_path(self, remove_accumulated_samples=False):
         self.min_thresh = float('inf')
         self.max_thresh = -float('inf')
-        self.samples = None
+        if remove_accumulated_samples:
+            self.samples = None
         if self.parent is not None:
             self.parent.reset_path()
 
-    def update_path(self, x):
+    def tighten_path(self, x):
         if not self.is_leaf():
             self.update_thresholds(x)
 
         if self.parent is not None:
-            self.parent.update_path(x)
+            self.parent.tighten_path(x)
+
+    def tighten_with_accumulated_samples(self):
+        if self.samples is not None and len(self.samples) > 0:
+            return self.tighten_path(self.samples)
 
     def update_thresholds(self, x):
         prob = self(x)
         self.min_thresh = min(self.min_thresh, prob.min())
         self.max_thresh = max(self.max_thresh, prob.max())
+
+    def clear_leaves_samples(self):
+        if self.is_leaf():
+            self.samples = None
+            return
+
+        self.left.clear_leaves_samples()
+        self.right.clear_leaves_samples()
 
     def accumulate_samples(self, x, method='greedy', maxs=None, accumulated_prob=None):
         if method == 'greedy':
