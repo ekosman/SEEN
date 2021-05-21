@@ -1,12 +1,13 @@
 from collections import deque
 from queue import Queue
-
+import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from data_structures.tree_condition import TreeCondition
+from sklearn import tree as tt
 
 
 def inverse_sigmoid(x):
@@ -240,6 +241,59 @@ class SDT(nn.Module):
         self.inner_nodes = nn.Linear(self.input_dim + 1, self.internal_node_num_, bias=False)
 
         self.leaf_nodes = nn.Parameter(torch.randn(size=(self.leaf_node_num_, self.output_dim)), requires_grad=True)
+
+    def get_leaves_idx(self, node_idx, reversed=False):
+        level = int(np.floor(np.log2(node_idx + 1)))
+        level_pos = node_idx - sum([2**l for l in range(level)])
+        level_range_size = 2 ** (self.depth - level)
+        start_idx = level_pos * level_range_size
+        end_idx = (level_pos + 1) * level_range_size
+
+        if reversed:
+            start_idx, end_idx = self.leaf_node_num_ - end_idx, self.leaf_node_num_ - start_idx
+
+        return list(range(start_idx, end_idx))
+
+    def initialize_from_decision_tree(self, dt):
+        tree = dt.tree_
+        tt.plot_tree(dt)
+        plt.show()
+        tree_q = deque()
+        sdt_q = deque()
+        tree_q.append(0)
+        sdt_q.append(0)
+
+        children_left = tree.children_left
+        children_right = tree.children_right
+
+        new_weights = self.inner_nodes.weight.clone()
+
+        while len(tree_q) != 0:
+            tree_node = tree_q.popleft()
+            sdt_node = sdt_q.popleft()
+
+            is_leaf = children_left[tree_node] == children_right[tree_node]
+            if is_leaf:
+                class_ = np.argmax(tree.value[tree_node])
+                sdt_leaves = self.get_leaves_idx(sdt_node, reversed=True)
+                self.leaf_nodes.data[sdt_leaves, :] = 0
+                self.leaf_nodes.data[sdt_leaves, class_] = 1
+            else:
+                tree_q.append(children_left[tree_node])
+                tree_q.append(children_right[tree_node])
+
+                sdt_q.append(sdt_node * 2 + 2)  # reversed
+                sdt_q.append(sdt_node * 2 + 1)  # reversed
+
+                node_weights = new_weights[sdt_node, :]
+                node_weights[:] = 0
+                feature = tree.feature[tree_node]
+                thresh = tree.threshold[tree_node]
+                node_weights[feature + 1] = 1
+                node_weights[0] = -thresh
+
+        with torch.no_grad():
+            self.inner_nodes.weight.copy_(new_weights)
 
     def get_classes(self):
         return list(self.leaf_nodes.cpu().detach().argmax(dim=1).numpy())
