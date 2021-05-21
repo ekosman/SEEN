@@ -104,7 +104,11 @@ if __name__ == "__main__":
         tree.train()
         for batch_idx, (data, target) in enumerate(train_loader):
             dt.fit(data.flatten(1), target)
+            score = dt.score(data.flatten(1), target)
+            print(f"DT Score: {score}")
             tree.initialize_from_decision_tree(dt)
+            score = tree.score_batch(data, target)
+            print(f"SDT Score: {score}")
 
             batch_size = data.size()[0]
             data, target = data.to(device), target.to(device)

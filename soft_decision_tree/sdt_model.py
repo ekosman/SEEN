@@ -38,7 +38,8 @@ class Node:
 
     def __call__(self, x):
         x = x.view(x.shape[0], -1)
-        return F.sigmoid(F.linear(input=x, weight=torch.tensor(self.weights[1:]).reshape(1, -1), bias=torch.tensor(self.weights[0])))
+        return F.sigmoid(
+            F.linear(input=x, weight=torch.tensor(self.weights[1:]).reshape(1, -1), bias=torch.tensor(self.weights[0])))
 
     def reset_path(self, remove_accumulated_samples=False):
         self.min_thresh = float('inf')
@@ -244,7 +245,7 @@ class SDT(nn.Module):
 
     def get_leaves_idx(self, node_idx, reversed=False):
         level = int(np.floor(np.log2(node_idx + 1)))
-        level_pos = node_idx - sum([2**l for l in range(level)])
+        level_pos = node_idx - sum([2 ** l for l in range(level)])
         level_range_size = 2 ** (self.depth - level)
         start_idx = level_pos * level_range_size
         end_idx = (level_pos + 1) * level_range_size
@@ -314,8 +315,10 @@ class SDT(nn.Module):
                     weights_left = weights[node.index * 2 + 1, :]
                     weights_right = weights[node.index * 2 + 2, :]
 
-                node.left = Node(depth=node.depth + 1, index=node.index * 2 + 1, weights=weights_left, is_root=False, parent=node)
-                node.right = Node(depth=node.depth + 1, index=node.index * 2 + 2, weights=weights_right, is_root=False, parent=node)
+                node.left = Node(depth=node.depth + 1, index=node.index * 2 + 1, weights=weights_left, is_root=False,
+                                 parent=node)
+                node.right = Node(depth=node.depth + 1, index=node.index * 2 + 2, weights=weights_right, is_root=False,
+                                  parent=node)
                 q.put(node.left)
                 q.put(node.right)
             if node.depth == self.depth:
@@ -366,8 +369,8 @@ class SDT(nn.Module):
                 continue
 
             else:
-                left_node = node_i*2+1
-                right_node = node_i*2+2
+                left_node = node_i * 2 + 1
+                right_node = node_i * 2 + 2
                 A.add_node(left_node, _class=node.left._class)
                 A.add_node(right_node, _class=node.right._class)
                 A.add_edge(node_i, left_node)
@@ -490,3 +493,26 @@ class SDT(nn.Module):
                 " negative, but got {} instead."
             )
             raise ValueError(msg.format(self.lamda))
+
+    def score(self, tree_loader):
+        correct = 0
+        self.eval()
+        with torch.no_grad():
+            for batch_idx, (data, target) in enumerate(tree_loader):
+                data, target = data.to(self.device), target.to(self.device)
+                output = self.forward(data, False)
+                pred = output.data.max(1)[1]
+                correct += pred.eq(target.view(-1).data).sum()
+
+        return correct / len(tree_loader.dataset)
+
+    def score_batch(self, data, target):
+        correct = 0
+        self.eval()
+        with torch.no_grad():
+            data, target = data.to(self.device), target.to(self.device)
+            output = self.forward(data, False)
+            pred = output.data.max(1)[1]
+            correct += pred.eq(target.view(-1).data).sum()
+
+        return correct / len(data)
