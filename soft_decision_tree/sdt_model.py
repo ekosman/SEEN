@@ -257,8 +257,8 @@ class SDT(nn.Module):
 
     def initialize_from_decision_tree(self, dt):
         tree = dt.tree_
-        tt.plot_tree(dt)
-        plt.show()
+        # tt.plot_tree(dt)
+        # plt.show()
         tree_q = deque()
         sdt_q = deque()
         tree_q.append(0)
