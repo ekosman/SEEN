@@ -22,7 +22,7 @@ from utils.utils import register_logger
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--depth', type=int, default=4)
+    parser.add_argument('--depth', type=int, default=6)
     parser.add_argument('--epochs', type=int, default=51)
     parser.add_argument('--log_interval', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=10)
@@ -70,6 +70,9 @@ if __name__ == "__main__":
     # Model and Optimizer
     tree = SDT(input_dim, output_dim, depth, lamda, use_cuda)
 
+    from sklearn.tree import DecisionTreeClassifier
+    dt = DecisionTreeClassifier()
+
     optimizer = torch.optim.Adam(tree.parameters(),
                                  lr=lr,
                                  weight_decay=weight_decay)
@@ -100,6 +103,8 @@ if __name__ == "__main__":
         # Training
         tree.train()
         for batch_idx, (data, target) in enumerate(train_loader):
+            dt.fit(data.flatten(1), target)
+            tree.initialize_from_decision_tree(dt)
 
             batch_size = data.size()[0]
             data, target = data.to(device), target.to(device)
