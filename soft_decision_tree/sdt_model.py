@@ -283,8 +283,8 @@ class SDT(nn.Module):
                 tree_q.append(children_left[tree_node])
                 tree_q.append(children_right[tree_node])
 
-                sdt_q.append(sdt_node * 2 + 2)  # reversed
                 sdt_q.append(sdt_node * 2 + 1)  # reversed
+                sdt_q.append(sdt_node * 2 + 2)  # reversed
 
                 node_weights = new_weights[sdt_node, :]
                 node_weights[:] = 0
