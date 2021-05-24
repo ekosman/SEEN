@@ -11,7 +11,7 @@ from sklearn import tree as tt
 
 
 def inverse_sigmoid(x):
-    return torch.log(1 / (1 - x))
+    return np.log(1 / (1 - x))
 
 
 class Node:
