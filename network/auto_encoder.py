@@ -24,7 +24,7 @@ class AutoEncoder(nn.Module):
         in_size = self.steps[-num_steps]
         mid_size = self.steps[-num_steps + 1]
 
-        enc = [nn.Linear(in_size, mid_size),
+        enc = [nn.Linear(in_size, mid_size, bias=True),
             nn.LeakyReLU()]
         dec = [nn.Linear(mid_size, in_size)]
 
@@ -94,5 +94,5 @@ class AutoEncoder(nn.Module):
 
 
 if __name__ == '__main__':
-    model = AutoEncoder(100, 10, 3)
-    summary(model, input_size=(100,))
+    model = AutoEncoder(167, 50, 3)
+    summary(model, input_size=(167,))

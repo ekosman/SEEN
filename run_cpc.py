@@ -31,6 +31,13 @@ from utils.email_utils import GmailNotifier
 from utils.LoggingUtils import get_clearml_logger
 from utils.utils import register_exps_dir
 
+
+"""
+Command:
+python run_cpc.py --data_path ../comma_ai_all_data/ --epochs 100 --num_workers 1 --batch_size 512 --device 1 --window_stride 200 --timestep 30 --window_length 2000 --exps_dir knn_loss_batch_512_k_16 --k 16 --send_email
+"""
+
+
 run_name = "cdc" + time.strftime("-%Y-%m-%d_%H_%M_%S")
 print(run_name)
 
