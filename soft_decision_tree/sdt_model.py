@@ -91,13 +91,21 @@ class Node:
                 self.right.accumulate_samples(x[right_idx], method)
         elif method == 'MLE':
             if self.is_leaf():
-                return torch.ones(x.shape[0], 1)
+                return torch.ones(x.shape[0], 1), torch.tensor([0])
             prob = self(x)
             # the following contains the probabilites for each samples for each leaf
-            left_probs = self.left.accumulate_samples(x, method) * prob
-            right_probs = self.right.accumulate_samples(x, method) * (1 - prob)
+            left_probs, left_lengths = self.left.accumulate_samples(x, method)
+            right_probs, right_lengths = self.right.accumulate_samples(x, method)
+            left_probs = left_lengths * prob
+            right_probs = right_probs * (1 - prob)
+
+            left_lengths = left_lengths + 1
+            right_lengths = right_lengths + 1
+
             all_probs = torch.cat([left_probs, right_probs], dim=1)
+            all_lengths = torch.cat([left_lengths, right_lengths])
             if self.is_root:
+                all_probs = all_probs ** (1/all_lengths)
                 maxs = all_probs.max(dim=1)[1]
                 leaves = self.get_leaves()
                 for leaf_idx, leaf in enumerate(leaves):
@@ -108,18 +116,7 @@ class Node:
                     leaf.samples = torch.cat([leaf.samples, x[sample_idx]])
                 # self.accumulate_samples(x, 'accumulate MLE', maxs, torch.ones(x.shape[0]))
             else:
-                return all_probs
-        elif method == 'accumulate MLE':
-            if self.is_leaf():
-                if self.samples is None:
-                    self.samples = torch.tensor([])
-
-                self.samples = torch.cat([self.samples, x[accumulated_prob == maxs]])
-                return
-
-            prob = self(x).view(-1)
-            self.left.accumulate_samples(x, method, maxs, accumulated_prob * prob)
-            self.right.accumulate_samples(x, method, maxs, accumulated_prob * (1 - prob))
+                return all_probs, all_lengths
 
     @property
     def n_weights(self):
