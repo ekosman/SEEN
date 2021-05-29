@@ -30,6 +30,9 @@ class Node:
         self.min_thresh = float('inf')
         self.max_thresh = -float('inf')
 
+    def test(self):
+        print('fds')
+
     def get_leaves(self):
         if self.is_leaf():
             return [self]
@@ -58,6 +61,7 @@ class Node:
 
     def tighten_with_accumulated_samples(self):
         if self.samples is not None and len(self.samples) > 0:
+            print(len(self.samples))
             return self.tighten_path(self.samples)
 
     def update_thresholds(self, x):
@@ -83,8 +87,8 @@ class Node:
                 return
 
             prob = self(x)
-            left_idx = (prob <= 0.5).view(-1)
-            right_idx = (prob > 0.5).view(-1)
+            left_idx = (prob >= 0.5).view(-1)
+            right_idx = (prob < 0.5).view(-1)
             if left_idx.sum() != 0:
                 self.left.accumulate_samples(x[left_idx], method)
             if right_idx.sum() != 0:
@@ -130,7 +134,7 @@ class Node:
 
     def get_path_conditions(self, attr_names):
         if self.is_leaf():
-            if self.parent is None:
+            if self.parent is None or self.samples is None:
                 return []
 
             return self.parent.get_path_conditions(attr_names)
