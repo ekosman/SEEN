@@ -1,10 +1,8 @@
-import logging
-
 import torch
 import torch.nn as nn
 import numpy as np
 from torch import optim
-from torchsummary import summary
+# from torchsummary import summary
 from tqdm import tqdm
 import torch.nn.functional as F
 
@@ -95,4 +93,4 @@ class AutoEncoder(nn.Module):
 
 if __name__ == '__main__':
     model = AutoEncoder(167, 50, 3)
-    summary(model, input_size=(167,))
+    # summary(model, input_size=(167,))
