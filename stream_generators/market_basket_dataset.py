@@ -21,8 +21,7 @@ class MarketBasketDataset(data.Dataset):
 
         # loader params
         self.dataset_path = dataset_path
-        self.df = pd.read_csv(
-            r"C:\Users\eitan\PycharmProjects\EntangledExplainableClustering\data\Groceries_dataset.csv")
+        self.df = pd.read_csv(dataset_path)
         self.items = self.df.itemDescription.unique()
         self.items_to_idx = {item: idx for idx, item in enumerate(self.items)}
         self.itemsets = list(self.df.groupby(['Member_number', 'Date'])['itemDescription'].unique())
