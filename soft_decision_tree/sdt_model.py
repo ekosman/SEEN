@@ -134,7 +134,7 @@ class Node:
 
     def get_path_conditions(self, attr_names):
         if self.is_leaf():
-            if self.parent is None or self.samples is None:
+            if self.parent is None:
                 return []
 
             return self.parent.get_path_conditions(attr_names)
