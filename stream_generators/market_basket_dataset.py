@@ -25,12 +25,35 @@ class MarketBasketDataset(data.Dataset):
         self.items = self.df.itemDescription.unique()
         self.items_to_idx = {item: idx for idx, item in enumerate(self.items)}
         self.itemsets = list(self.df.groupby(['Member_number', 'Date'])['itemDescription'].unique())
+        self.set_itemsets = [set(x) for x in self.itemsets]
         self.transform = transform
         self.target_transform = target_transform
 
     @property
     def n_items(self):
         return len(self.items)
+
+    def itemset_inclusion(self, itemset):
+        itemset = set(itemset)
+        return len([x for x in self.set_itemsets if x.issuperset(itemset)])
+
+    def itemset_intersection(self, itemset):
+        itemset = set(itemset)
+        return len([x for x in self.set_itemsets if len(x.intersection(itemset)) != 0])
+
+    def support(self, itemset):
+        return self.itemset_inclusion(itemset) / len(self)
+
+    def supp_exclude(self, include, exclude):
+        return self.itemset_inclusion_exclusion(include, exclude) / len(self)
+
+    def itemset_inclusion_exclusion(self, include, exclude):
+        include = set(include)
+        exclude = set(exclude)
+        return len([x for x in self.set_itemsets if x.issuperset(include) and len(x.intersection(exclude)) == 0])
+
+    def bond(self, itemset):
+        return self.itemset_inclusion(itemset) / self.itemset_intersection(itemset)
 
     def __repr__(self):
         return f"""

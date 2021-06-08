@@ -22,46 +22,16 @@ class KNNLoss(nn.Module):
         self.iteration = 0
 
     def forward(self, x):
-        # x = x / x.norm(p=2, dim=1).reshape(-1, 1)
         k = min(self.k + 1, x.shape[0])
         tree = BallTree(x.detach().cpu().numpy(), leaf_size=self.leaf_size)
         i = tree.query(x.detach().cpu().numpy(), return_distance=False, k=k)
         i = i[:, 1:]
         loss = 0
         for x_i, (x_, x_neighbors_indices) in enumerate(zip(x, i)):
-            # start_time = time.time()
             diff = x_ - x
             diff = diff.norm(p=2, dim=1)
             distances = torch.exp(-diff)
-            # diff_ = diff[np.arange(len(x)) != x_i]
-            # diff_ = list(reversed(sorted(diff_.detach().cpu().numpy())))
-            # chosen, ds, threshold = get_threshold_by_distance(diff_)
-            # neighbors = [idx for idx in range(len(x)) if idx != x_i and diff[idx] <= threshold]
-            # if len(neighbors) < k:
             neighbors = x_neighbors_indices
-
-            # if self.iteration % 5000 == 0:
-            #     plt.figure()
-            #     plt.title(f"fdsfsd {self.iteration}")
-            #     plt.plot(diff_, label='distances')
-            #     plt.plot([0, len(diff_) - 1], [diff_[0], diff_[-1]], color='r')
-            #     plt.plot(ds, label='difference')
-            #     plt.axvline(chosen, color='g', label=f"chosen threshold: {diff_[chosen]} @ {chosen}")
-            #     plt.legend()
-            #     plt.savefig("distances.png")
-            #     plt.show()
-            #     plt.close()
-            #
-            #     plt.figure()
-            #     plt.title(f"Iteration {self.iteration}, max distance: {diff.max()}")
-            #     plt.hist(diff_, bins=50)
-            #     plt.axvline(threshold)
-            #     # plt.yscale('log')
-            #     # file_name = path.join(folder, f"{i}.png")
-            #     plt.savefig('distance_hist.png')
-            #     plt.show()
-            #     plt.close()
-
 
             neighbors_distances = distances[neighbors]
             distances_wo_x = distances[np.arange(len(x)) != x_i]
@@ -70,7 +40,39 @@ class KNNLoss(nn.Module):
 
             loss -= torch.log(neighbors_distances / denominator).mean()
 
-            # print(f"time: {time.time() - start_time}")
+            self.iteration += 1
+
+        return loss / x.shape[0]
+
+
+class ClassificationKNNLoss(nn.Module):
+    def __init__(self, k=2, leaf_size=2):
+        super(ClassificationKNNLoss, self).__init__()
+        self.k = k
+        self.leaf_size = leaf_size
+        self.iteration = 0
+
+    def forward(self, x, y):
+        k = min(self.k + 1, x.shape[0])
+        tree = BallTree(x.detach().cpu().numpy(), leaf_size=self.leaf_size)
+        i = tree.query(x.detach().cpu().numpy(), return_distance=False, k=k)
+        i = i[:, 1:]
+        loss = 0
+        for x_i, (x_, x_neighbors_indices, y_) in enumerate(zip(x, i, y)):
+            diff = x_ - x
+            diff = diff.norm(p=2, dim=1)
+            distances = torch.exp(-diff)
+
+            neighbors = x_neighbors_indices[y[x_neighbors_indices] == y_]
+            if len(neighbors) == 0:
+                continue
+
+            neighbors_distances = distances[neighbors]
+            distances_wo_x = distances[np.arange(len(x)) != x_i]
+
+            denominator = distances_wo_x.sum()
+
+            loss -= torch.log(neighbors_distances / denominator).mean()
 
             self.iteration += 1
 
@@ -114,8 +116,8 @@ class ContrastiveLoss(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    # loss = KNNLoss()
-    loss = ContrastiveLoss()
+    loss = ClassificationKNNLoss()
     x = torch.randint(0, 10, size=(10, 3)).float()
+    y = torch.randint(0,3, size=(10,))
 
-    print(loss(x))
+    print(loss(x, y))
