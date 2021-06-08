@@ -53,6 +53,7 @@ class ClassificationKNNLoss(nn.Module):
         self.iteration = 0
 
     def forward(self, x, y):
+        y = y.detach().cpu()
         k = min(self.k + 1, x.shape[0])
         tree = BallTree(x.detach().cpu().numpy(), leaf_size=self.leaf_size)
         i = tree.query(x.detach().cpu().numpy(), return_distance=False, k=k)
