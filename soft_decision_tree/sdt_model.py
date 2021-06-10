@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from data_structures.tree_condition import TreeCondition
-from sklearn import tree as tt
 
 
 def inverse_sigmoid(x):
@@ -118,7 +117,6 @@ class Node:
                         leaf.samples = torch.tensor([])
 
                     leaf.samples = torch.cat([leaf.samples, x[sample_idx]])
-                # self.accumulate_samples(x, 'accumulate MLE', maxs, torch.ones(x.shape[0]))
             else:
                 return all_probs, all_lengths
 
@@ -258,8 +256,6 @@ class SDT(nn.Module):
 
     def initialize_from_decision_tree(self, dt):
         tree = dt.tree_
-        # tt.plot_tree(dt)
-        # plt.show()
         tree_q = deque()
         sdt_q = deque()
         tree_q.append(0)

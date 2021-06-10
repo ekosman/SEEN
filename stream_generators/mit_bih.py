@@ -42,8 +42,3 @@ n_records = {len(self)}
         x = x[:-1]
         x = x[np.newaxis, :]
         return torch.tensor(x).float(), torch.tensor(y).long()
-
-
-if __name__ == '__main__':
-    dataset = MITBIH(dataset_path=r"F:\Downloads\archive\mitbih_train.csv")
-    print(dataset[0])
