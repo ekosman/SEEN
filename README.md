@@ -1,3 +1,8 @@
+# OCCAM - Soft Decision Tree for Mathematical Expressions Mining
+
+Pytorch implementation of the paper "Mining Mathematical Expressions From Proper Representations"
+
+![logo](figures/problem_illu.png)
 # How to run the code
 
 ## Install the Anaconda environment
