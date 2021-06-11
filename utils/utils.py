@@ -1,9 +1,7 @@
-import cProfile
 import logging
-import sys
 import os
+import sys
 from os import path
-import numpy as np
 
 
 def register_logger(log_file=None, stdout=True):
@@ -41,56 +39,3 @@ def log_args_description(args):
         s += f"      {k}: {v}\n"
 
     logging.info(s)
-
-
-def distance_from_line(p1, p2, p3):
-    p1 = np.asarray(p1)
-    p2 = np.asarray(p2)
-    p3 = np.asarray(p3)
-    try:
-        d = np.abs(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1)
-    except:
-        d = 0
-    return d
-
-
-def get_threshold_by_distance(measures_sorted_flat):
-    """
-    :param measures_sorted_flat: array of values sorted in descending order
-    :return:
-    """
-    n_points = len(measures_sorted_flat)
-    min_d = min(measures_sorted_flat)
-    max_d = max(measures_sorted_flat)
-    p1 = [0, max_d]
-    p2 = [n_points - 1, min_d]
-
-    orig_ds = distance_from_line(p1, p2, np.vstack([np.arange(n_points), measures_sorted_flat]).T)
-
-    intersections, = np.where(orig_ds < max_d / 100)
-
-    offset = intersections[-2]
-    ds = orig_ds[offset:]
-
-    most_far = np.argmax(ds) + 1
-    close_indices, = np.where(ds <= 1e-6)
-    closest = close_indices[1] if len(close_indices) >= 2 else np.inf
-    chosen = np.clip(min(most_far, closest), 0, n_points - 1)
-    chosen += offset
-    try:
-        threshold = measures_sorted_flat[chosen]
-        # delta = (max(measures_sorted_flat) - threshold) / chosen
-
-        # logging.info(f"chose threshold {threshold} @ {chosen}, delta: {delta}")
-
-        return chosen, orig_ds, threshold
-        # return threshold, chosen, ds, delta
-    except:
-        print(f"most far: {most_far}")
-        print(f"closest: {closest}")
-        exit()
-
-
-if __name__ == '__main__':
-    d = np.linspace(1000, 10, 1000)
-    cProfile.run('get_threshold_by_distance(d)')

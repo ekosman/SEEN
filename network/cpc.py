@@ -51,7 +51,6 @@ class CDCK2(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-        # initialize gru
         for layer_p in self.gru._all_weights:
             for p in layer_p:
                 if 'weight' in p:
@@ -69,48 +68,34 @@ class CDCK2(nn.Module):
     def forward(self, x, hidden):
         batch = x.size()[0]
 
-        # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
         compress_ratio = x.shape[2] / z.shape[2]
-        # print(f"Ratio: {compress_ratio}")
         t_samples = torch.randint(int(self.seq_len / compress_ratio - self.timestep),
-                                  size=(1,)).long()  # randomly pick time stamps
-        # print(f"2: {z.shape[0]}")
-        # encoded sequence is N*C*L, e.g. 8*512*128
-        # reshape to N*L*C for GRU, e.g. 8*128*512
+                                  size=(1,)).long()
         z = z.transpose(1, 2)
-        # print(f"3: {z.shape[0]}")
-        nce = 0  # average over timestep and batch
-        encode_samples = torch.empty((self.timestep, batch, self.embedding_dim)).float().to(self.device)  # e.g. size 12*8*512
+        nce = 0
+        encode_samples = torch.empty((self.timestep, batch, self.embedding_dim)).float().to(self.device)
         for i in np.arange(1, self.timestep + 1):
-            encode_samples[i - 1] = z[:, t_samples + i, :].view(batch, self.embedding_dim)  # z_tk e.g. size 8*512
-        forward_seq = z[:, :t_samples + 1, :]  # e.g. size 8*100*512
-        # print(f"4: {forward_seq.shape[0]}")
-        output, hidden = self.gru(forward_seq, hidden)  # output size e.g. 8*100*256
-        # print(f"output.device: {output.device}")
-        c_t = output[:, -1, :].view(batch, hidden_dim)  # c_t e.g. size 8*256
-        pred = torch.empty((self.timestep, batch, self.embedding_dim)).float().to(self.device)  # e.g. size 12*8*512
-        # print(f"pred.device: {pred.device}")
+            encode_samples[i - 1] = z[:, t_samples + i, :].view(batch, self.embedding_dim)
+        forward_seq = z[:, :t_samples + 1, :]
+        output, hidden = self.gru(forward_seq, hidden)
+        c_t = output[:, -1, :].view(batch, hidden_dim)
+        pred = torch.empty((self.timestep, batch, self.embedding_dim)).float().to(self.device)
         correct = 0
         for i in np.arange(0, self.timestep):
             linear = self.Wk[i]
-            pred[i] = linear(c_t)  # Wk*c_t e.g. size 8*512
+            pred[i] = linear(c_t)
         for i in np.arange(0, self.timestep):
-            total = torch.mm(encode_samples[i], torch.transpose(pred[i], 0, 1))  # e.g. size 8*8
-            correct += torch.sum(torch.eq(torch.argmax(self.softmax(total), dim=0), torch.arange(0, batch).to(self.device)))  # correct is a tensor
-            nce += torch.sum(torch.diag(self.lsoftmax(total)))  # nce is a tensor
+            total = torch.mm(encode_samples[i], torch.transpose(pred[i], 0, 1))
+            correct += torch.sum(torch.eq(torch.argmax(self.softmax(total), dim=0),
+                                          torch.arange(0, batch).to(self.device)))
+            nce += torch.sum(torch.diag(self.lsoftmax(total)))
         nce /= -1. * batch * self.timestep
         accuracy = 1. * correct.item() / (batch * self.timestep)
-        # print(f"nce.device: {nce.device}")
         return accuracy, nce, hidden, output[:, -1, :]
 
     def predict(self, x, hidden):
-        # input sequence is N*C*L, e.g. 8*1*20480
         z = self.encoder(x)
-        # encoded sequence is N*C*L, e.g. 8*512*128
-        # reshape to N*L*C for GRU, e.g. 8*128*512
         z = z.transpose(1, 2)
-        output, hidden = self.gru(z, hidden)  # output size e.g. 8*128*256
-
-        # return output, hidden  # return every frame
-        return output[:, -1, :]  # , hidden # only return the last frame per utt
+        output, hidden = self.gru(z, hidden)
+        return output[:, -1, :]

@@ -114,8 +114,8 @@ def get_args():
     parser.add_argument('--exps_dir', type=str, default="exps", help='name to use for the output folder')
     parser.add_argument('--k', type=int, default=4, help='Number of neighbors to consider for the knn loss')
     parser.add_argument('--send_email', default=False, action='store_true', help='Send an email when finished')
-    parser.add_argument('--email_user', default=r'eitan.kosman', help='Username for sending the email')
-    parser.add_argument('--email_password', default='kqdopssgpcglbwaj', help='Password for sending the email')
+    parser.add_argument('--email_user', default=r'', help='Username for sending the email')
+    parser.add_argument('--email_password', default='', help='Password for sending the email')
     parser.add_argument('--email_to', default=r'eitan.kosman@gmail.com',
                         help='Email of the receiver of the results email')
     parser.add_argument('--enable_clearml_logger',

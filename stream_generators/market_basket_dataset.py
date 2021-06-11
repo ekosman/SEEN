@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as data
-import torchvision
 
 
 class MarketBasketDataset(data.Dataset):
@@ -112,19 +111,3 @@ class RemoveItemsTransform:
             x = np.delete(x, np.random.randint(0, len(x)))
 
         return x
-
-
-if __name__ == '__main__':
-    dataset = MarketBasketDataset(
-        dataset_path=r"C:\Users\eitan\PycharmProjects\EntangledExplainableClustering\data\Groceries_dataset.csv")
-    dataset.transform = torchvision.transforms.Compose([
-        RemoveItemsTransform(p=0.5),
-        BinaryEncodingTransform(mapping=dataset.items_to_idx),
-    ]
-    )
-    dataset.target_transform = torchvision.transforms.Compose([
-        BinaryEncodingTransform(mapping=dataset.items_to_idx),
-    ]
-    )
-    # print(dataset[0])
-    print(len(dataset))
