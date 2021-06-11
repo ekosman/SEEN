@@ -14,7 +14,8 @@ conda activate torch
 
 ## Datasets
 - comma.ai: https://academictorrents.com/details/65a2fbc964078aff62076ff4e103f18b951c5ddb
-* Groceries: https://www.kaggle.com/heeraldedhia/groceries-dataset
+- Groceries: https://www.kaggle.com/heeraldedhia/groceries-dataset
+- ECG: https://www.kaggle.com/shayanfazeli/heartbeat
 
 ## Train CPC feature extractor for comma.ai
 Change the parameters accordingly:
