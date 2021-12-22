@@ -1,6 +1,6 @@
-# OCCAM - Soft Decision Tree for Mathematical Expressions Mining
+# SEEN - Soft dEcision Tree for logical arithmetic Expressions miNing
 
-Pytorch implementation of the paper "Mining Mathematical Expressions From Proper Representations"
+Pytorch implementation of the paper "Mining Logical Arithmetic Expressions From Proper Representations"
 
 ![logo](figures/problem_illu.png)
 # How to run the code
